@@ -62,3 +62,4 @@ targets:
   - netlify.toml: docs/netlify.toml
   - .misc/appveyor.yml: ci/appveyor.yml.jj2
   - .misc/run_with_env.cmd: run_with_env.cmd
+  - coalib/__main__.py: __main__.py.jj2  
