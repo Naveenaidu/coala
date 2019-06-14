@@ -88,8 +88,8 @@ class NlSection(TextRange):
 
         If the whole file is affected, then just the filename is shown.
 
-        >>> str(NlSection.from_values('test_file', 1, 'html', None, None,\
-                                      None, None))
+        >>> str(NlSection.from_values('test_file', 1, 'html', None, None,
+        ... None, None))
         '...test_file: 1: html: '
 
         If the whole line is affected, then just the filename with starting
