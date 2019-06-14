@@ -1,10 +1,11 @@
 from coalib.nestedlib.parsers.Parser import Parser, create_nl_section, get_file
 import regex as re
 
+
 class PyJinjaParser(Parser):
 
     JINJA_STATEMENT_PATTERN = (
-    r'(?P<open>{%[+-]?)(?P<content>.*?)(?P<close>[+-]?%})')
+        r'(?P<open>{%[+-]?)(?P<content>.*?)(?P<close>[+-]?%})')
     JINJA_VAR_PATTERN = (
         r'(?P<open>{{)(?P<content>.*?)(?P<close>}})')
     JINJA_RE = re.compile(
@@ -427,7 +428,7 @@ class PyJinjaParser(Parser):
                     The match object starts at a column which is greater than
                     the cursor and end at a column less than the end_column.
 
-                    
+
 
                     This deals with the Jinja elements present somewhere in the
                     middle of the line.
