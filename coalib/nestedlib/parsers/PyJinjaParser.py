@@ -136,7 +136,7 @@ class PyJinjaParser(Parser):
             nl section
             """
             nl_sections = self.update_nl_section(nl_sections, line_number,
-                                                 len(line))
+                                                 len(line)-1)
         return nl_sections
 
     def check_pure_jinja_line(self, line):
@@ -234,7 +234,7 @@ class PyJinjaParser(Parser):
                                               start_line=line_number,
                                               start_column=cursor+1,
                                               end_line=line_number,
-                                              end_column=match.start()+1)
+                                              end_column=match.start())
 
             # Jinja Section
             nl_sections = self.new_nl_section(file=file,
@@ -262,6 +262,8 @@ class PyJinjaParser(Parser):
         line_number = line_number if (line_number) else 1
 
         start_column = 0
+
+        # len(line) also includes the newline character - hence we subtract one
         end_column = len(line) - 1
 
         # The cursor points to the next character in the line that has to be
@@ -281,7 +283,8 @@ class PyJinjaParser(Parser):
                                                   language='jinja',
                                                   nl_sections=nl_sections,
                                                   start_line=line_number,
-                                                  start_column=1)
+                                                  start_column=1,
+                                                  end_column=end_column)
             else:
                 nl_sections = self.update_nl_section(nl_sections, line_number,
                                                      1)
@@ -418,11 +421,13 @@ class PyJinjaParser(Parser):
 
                 else:
                     """
+                    Check:
+                    if match.start() > cursor and match.end() < end_column.
+
                     The match object starts at a column which is greater than
                     the cursor and end at a column less than the end_column.
 
-                    Check:
-                    if match.start() > cursor and match.end() < end_column
+                    
 
                     This deals with the Jinja elements present somewhere in the
                     middle of the line.
@@ -469,7 +474,7 @@ class PyJinjaParser(Parser):
                     nl_sections = self.update_nl_section(
                                                         nl_sections=nl_sections,
                                                         end_line=line_number,
-                                                        end_column=len(line))
+                                                        end_column=len(line)-1)
 
                 else:
                     nl_sections = self.new_nl_section(file=file,
@@ -478,7 +483,7 @@ class PyJinjaParser(Parser):
                                                       start_line=line_number,
                                                       start_column=cursor+1,
                                                       end_line=line_number,
-                                                      end_column=len(line))
+                                                      end_column=len(line)-1)
 
             # If the present line was not a pure Jinja line, the next line
             # should not be appended to the current line.
