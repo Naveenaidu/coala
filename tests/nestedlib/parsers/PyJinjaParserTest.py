@@ -5,33 +5,36 @@ from coalib.io.File import File
 
 from coalib.nestedlib.parsers.PyJinjaParser import PyJinjaParser
 TEST_FILE_DIR = os.path.join(os.path.split(__file__)[0], 'file_test_files')
+TEST_OUTPUT_DIR = os.path.join(os.path.split(__file__)[0], 'file_test_output')
 
 
 class PyJinjaParserTest(unittest.TestCase):
 
     def setUp(self):
-        file_test_dir = TEST_FILE_DIR
-        self.test_filename = 'test-jinja-py.py.jj2.txt'
-        self.test_file_path = os.path.join(file_test_dir,
-                                           'test-jinja-py.py.jj2.txt')
-        self.abs_test_file_path = abspath(self.test_file_path)
+        self.file_test_dir = TEST_FILE_DIR
+        self.file_test_output = TEST_OUTPUT_DIR
+        self.test_filename1 = 'test-jinja-py.py.jj2.txt'
+        self.test_file1_path = os.path.join(self.file_test_dir,
+                                            self.test_filename1)
+        self.abs_test_file1_path = abspath(self.test_file1_path)
 
-        self.test_file = File(self.abs_test_file_path)
-        self.test_file_lines = (self.test_file).lines
+        self.test_file1 = File(self.abs_test_file1_path)
+        self.test_file1_lines = (self.test_file1).lines
+
         self.parser = PyJinjaParser()
 
     def test_parse(self):
-        uut_sections = self.parser.parse(self.abs_test_file_path)
+        uut_sections = self.parser.parse(self.abs_test_file1_path)
         uut_section_list = []
 
         nl_section_list = [
-            self.abs_test_file_path + ': 1: python: L1 C1: L1 C11:' +
+            self.abs_test_file1_path + ': 1: python: L1 C1: L1 C11:' +
             ' L1 C1: L1 C11',
-            self.abs_test_file_path + ': 2: jinja: L2 C1: L5 C10:' +
+            self.abs_test_file1_path + ': 2: jinja: L2 C1: L5 C10:' +
             ' L2 C1: L5 C10',
-            self.abs_test_file_path + ': 3: jinja: L6 C1: L6 C13:' +
+            self.abs_test_file1_path + ': 3: jinja: L6 C1: L6 C13:' +
             ' L6 C1: L6 C13',
-            self.abs_test_file_path + ': 4: python: L6 C14: L6 C32:' +
+            self.abs_test_file1_path + ': 4: python: L6 C14: L6 C32:' +
             ' L6 C14: L6 C32'
         ]
 
@@ -43,11 +46,11 @@ class PyJinjaParserTest(unittest.TestCase):
     def test_parse_line_1_pure_python(self):
         # Pure Python Line
         # line = 'for x in y:'
-        test_file_line1 = self.test_file.lines[0]
+        test_file_line1 = self.test_file1.lines[0]
         uut_nl_section = self.parser.parse_line(line=test_file_line1,
                                                 nl_sections=[],
                                                 line_number=1,
-                                                file=self.test_filename)
+                                                file=self.test_filename1)
 
         expected_nl_section_str = ('.*test-jinja-py.py.jj2.txt' +
                                    ': 1: python: L1 C1: L1 C11: L1 C1: L1 C11')
@@ -57,11 +60,11 @@ class PyJinjaParserTest(unittest.TestCase):
     def test_parse_line_2_pure_jinja(self):
         # Pure Jinja Line
         # line = '{% if x is True %}'
-        test_file_line1 = self.test_file.lines[1]
+        test_file_line1 = self.test_file1.lines[1]
         uut_nl_section = self.parser.parse_line(line=test_file_line1,
                                                 nl_sections=[],
                                                 line_number=2,
-                                                file=self.test_filename)
+                                                file=self.test_filename1)
 
         expected_nl_section_str = ('.*test-jinja-py.py.jj2.txt' +
                                    ': 1: jinja: L2 C1: L2 C18: L2 C1: L2 C18')
@@ -71,11 +74,11 @@ class PyJinjaParserTest(unittest.TestCase):
     def test_parse_line_5_mixed_line(self):
         # A Line with python and Jinja
         # line = '    {{ var }} = print("Bye Bye")'
-        test_file_line1 = self.test_file.lines[5]
+        test_file_line1 = self.test_file1.lines[5]
         uut_nl_section = self.parser.parse_line(line=test_file_line1,
                                                 nl_sections=[],
                                                 line_number=5,
-                                                file=self.test_filename)
+                                                file=self.test_filename1)
 
         expected_nl_section_1_str = ('.*test-jinja-py.py.jj2.txt' +
                                      ': 1: jinja: L5 C1: L5 C13: L5 C1: L5 C13')
@@ -96,7 +99,7 @@ class PyJinjaParserTest(unittest.TestCase):
         uut_nl_section = self.parser.parse_line(line=line,
                                                 nl_sections=[],
                                                 line_number=1,
-                                                file=self.test_filename)
+                                                file=self.test_filename1)
 
         expected_nl_section_1_str = ('.*test-jinja-py.py.jj2.txt' +
                                      ': 1: jinja: L1 C1: L1 C16: L1 C1: L1 C16')
@@ -115,7 +118,7 @@ class PyJinjaParserTest(unittest.TestCase):
         uut_nl_section = self.parser.parse_line(line=line,
                                                 nl_sections=[],
                                                 line_number=1,
-                                                file=self.test_filename)
+                                                file=self.test_filename1)
 
         expected_nl_section_1_str = ('.*test-jinja-py.py.jj2.txt' +
                                      ': 1: jinja: L1 C1: L1 C19: L1 C1: L1 C19')
@@ -131,7 +134,7 @@ class PyJinjaParserTest(unittest.TestCase):
         uut_nl_section = self.parser.parse_line(line=line,
                                                 nl_sections=[],
                                                 line_number=1,
-                                                file=self.test_filename)
+                                                file=self.test_filename1)
 
         expected_nl_section_1_str = ('.*test-jinja-py.py.jj2.txt' +
                                      ': 1: python: L1 C1: L1 C9: L1 C1: L1 C9')
@@ -153,7 +156,7 @@ class PyJinjaParserTest(unittest.TestCase):
         uut_nl_section = self.parser.parse_line(line=line,
                                                 nl_sections=[],
                                                 line_number=1,
-                                                file=self.test_filename)
+                                                file=self.test_filename1)
 
         expected_nl_section_1_str = ('.*test-jinja-py.py.jj2.txt' +
                                      ': 1: jinja: L1 C1: L1 C16: L1 C1: L1 C16')
@@ -184,7 +187,7 @@ class PyJinjaParserTest(unittest.TestCase):
         uut_nl_section = self.parser.parse_line(line=line,
                                                 nl_sections=[],
                                                 line_number=1,
-                                                file=self.test_filename)
+                                                file=self.test_filename1)
 
         expected_nl_section_1_str = ('.*test-jinja-py.py.jj2.txt' +
                                      ': 1: jinja: L1 C1: L1 C19: L1 C1: L1 C19')
@@ -199,7 +202,7 @@ class PyJinjaParserTest(unittest.TestCase):
         uut_nl_section = self.parser.parse_line(line=line,
                                                 nl_sections=[],
                                                 line_number=1,
-                                                file=self.test_filename)
+                                                file=self.test_filename1)
 
         expected_nl_section_1_str = ('.*test-jinja-py.py.jj2.txt' +
                                      ': 1: jinja: L1 C1: L1 C1: L1 C1: L1 C1')
@@ -216,8 +219,40 @@ class PyJinjaParserTest(unittest.TestCase):
         uut_nl_section = self.parser.parse_line(line=line,
                                                 nl_sections=[],
                                                 line_number=1,
-                                                file=self.test_filename)
+                                                file=self.test_filename1)
 
         expected_nl_section_1_str = ('.*test-jinja-py.py.jj2.txt' +
                                      ': 1: jinja: L1 C1: L1 C17: L1 C1: L1 C17')
         self.assertRegex(str(uut_nl_section[0]), expected_nl_section_1_str)
+
+    def test_coala_setup_template(self):
+
+        # Test the setup template of coala present in the moban repository
+        # The expected output of the parser is saved in another file.
+
+        test_filename = 'test-setup-py.py.jj2.txt'
+        test_file_path = os.path.join(self.file_test_dir, test_filename)
+        abs_test_file_path = abspath(test_file_path)
+
+        test_output_filename = 'coala-setup-parser-output.txt'
+        test_file_ouput_path = os.path.join(self.file_test_output,
+                                            test_output_filename)
+        abs_test_file_output_path = abspath(test_file_ouput_path)
+        test_ouput_file = File(abs_test_file_output_path)
+
+        uut_sections = self.parser.parse(abs_test_file_path)
+        nl_section_string = ''
+        expected_string = ''
+
+        for nl_section in uut_sections:
+            nl_section_string += (str(nl_section)+'\n')
+
+        for line in test_ouput_file.lines:
+            expected_string += (abs_test_file_path + line)
+
+        self.maxDiff = None
+        self.assertEqual(nl_section_string, expected_string)
+
+
+if __name__ == '__main__':
+    unittest.main()
