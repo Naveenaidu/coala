@@ -517,7 +517,7 @@ class PyJinjaParser(Parser):
         ...                  "{% if x is True %}\\n",
         ...                  "\\t{% set var3 = value3 %}\\n",
         ...                  "{% elif %}\\n",
-        ...                  "\\t\\t{{ var }} = print('Bye Bye')")
+        ...                  "\\t\\t{{ var }} = print('Bye Bye')\\n")
 
         >>> parser = PyJinjaParser()
         >>> nl_sections = parser.make_nl_sections(file_contents, 'test.py')
@@ -526,7 +526,7 @@ class PyJinjaParser(Parser):
         '...test.py: 1: python: L1 C1: L1 C11: L1 C1: L1 C11'
 
         >>> str(nl_sections[1])
-        '...test.py: 2: jinja: L2 C1: L4 C11: L2 C1: L4 C11'
+        '...test.py: 2: jinja: L2 C1: L4 C10: L2 C1: L4 C10'
 
         >>> str(nl_sections[2])
         '...test.py: 3: jinja: L5 C1: L5 C11: L5 C1: L5 C11'
