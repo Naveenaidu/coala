@@ -1,6 +1,9 @@
 from coalib.nestedlib.parsers.Parser import Parser, create_nl_section, get_file
 import regex as re
 
+# `regex` module is used instead of `re` since `re` does not have the
+# capability to compile regex statements that have the same group names.
+
 
 class PyJinjaParser(Parser):
 
