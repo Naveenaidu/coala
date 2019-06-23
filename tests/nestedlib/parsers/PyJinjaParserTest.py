@@ -284,4 +284,3 @@ class PyJinjaParserTest(unittest.TestCase):
                     generated_file_contents += original_file[line_nr-1][:]
 
         self.assertEqual(original_file_content, generated_file_contents)
-        
