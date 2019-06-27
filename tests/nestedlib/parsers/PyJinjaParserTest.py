@@ -279,7 +279,7 @@ class PyJinjaParserTest(unittest.TestCase):
                     generated_file_contents += (
                         original_file[line_nr-1][start_column-1:end_column])
                     if end_column == len(original_file[line_nr-1]) - 1:
-                        generated_file_contents += "\n"
+                        generated_file_contents += '\n'
                 else:
                     generated_file_contents += original_file[line_nr-1][:]
 
