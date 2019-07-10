@@ -18,12 +18,9 @@ def get_nl_sections(all_nl_sections, lang):
     nl_sections = sorted(nl_sections, key = lambda nl_section: nl_section.index)
     return nl_sections
 
-def make_nl_file_dict(orig_file_path, nl_sections, temp_file_name):
+def get_line_list(nl_sections, orig_file_path):
     """
-    Make a dictionary 
-
-    :param filename_list: A list of file names as strings to build
-                          the file dictionary from.
+    Create a list of lines that would be present in the temporary file.
     """
     file = File(orig_file_path)
 
@@ -46,7 +43,7 @@ def make_nl_file_dict(orig_file_path, nl_sections, temp_file_name):
             # Make the length of line equal to the length of original line
             if(line_list[line_nr-1].isspace()):
                 line_list[line_nr-1] = ' '*len(file[line_nr-1])
-                print(line_list[line_nr-1])
+
 
             orig_line = file[line_nr-1]
             end_orig_line = len(orig_line)-1
@@ -89,9 +86,41 @@ def make_nl_file_dict(orig_file_path, nl_sections, temp_file_name):
 
             else:
                 line_list[line_nr-1] = orig_line
-    line_list = beautify_line_list(line_list) 
-    pprint(line_list)
+    return line_list
 
+
+def beautify_line_list(line_list):
+    """
+    Beautify the line list. It add a newline character at the end of items if 
+    it's not present and also adds a newline character if the item is only 
+    space. Because those line might have been either a pure line or an empty
+    line.
+
+    Also, add a newline character to the end of line
+    """
+    for i,line in enumerate(line_list):
+        print(i, line)
+        if not line.strip():
+            line_list[i] = '\n'
+        elif line[-1] == '\n': 
+            continue
+        else:
+            line_list[i]+='\n'
+
+    return(tuple(line_list))
+
+def make_nl_file_dict(orig_file_path, nl_sections, temp_file_name):
+    """
+    Make a dictionary 
+
+    :param filename_list: A list of file names as strings to build
+                          the file dictionary from.
+    """
+    line_list = get_line_list(nl_sections, orig_file_path)
+    line_tuple = beautify_line_list(line_list)
+    file_dict = {temp_file_name : line_tuple} 
+    return file_dict
+    
 def get_nl_file_dict(orig_file_path, temp_file_name, lang, parser):
     """
     Return a dictionary with `temp_file_name` as the key and the lines of the
