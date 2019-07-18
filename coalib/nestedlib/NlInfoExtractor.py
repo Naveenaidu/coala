@@ -10,6 +10,23 @@ from coalib.collecting.Collectors import (
 
 SUPPORTED_LANG_COMB = [{"python", "jinja2"}]
 
+def get_temp_file_lang(nl_info_dict, temp_file):
+    """
+    Return the language of the temp created file.
+    """
+    for file, file_info in nl_info_dict['nl_file_info'].items():
+        for lang, temp_file_name in file_info.items():
+            if temp_file == temp_file_name:
+                return lang
+
+def get_orig_file(nl_file_info, temp_file):
+    """
+    Return the original file name for the temp_file
+    """
+    for file, file_info in nl_info_dict['nl_file_info'].items():
+        for lang, temp_file_name in file_info.items():
+            if temp_file == temp_file_name:
+                return file
 
 def check_lang_support(lang_list):
     """
