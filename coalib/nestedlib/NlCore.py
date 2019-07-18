@@ -14,7 +14,7 @@ def parse_nl_cli(arg_list,nl_info_dict):
 
     This function decorates the parse_cli method to create the coala nl_section
     """
-    nl_section = OrderedDict()
+    nl_sections = OrderedDict()
     for args in arg_list:
         sections = parse_cli(args=args)
         file_name = args.__dict__['files']
@@ -35,9 +35,10 @@ def parse_nl_cli(arg_list,nl_info_dict):
                            from_cli=True)
 
         nl_section_name = "cli_nl_section: " + file_name
-        nl_section[nl_section_name]=sections['cli']
+        nl_sections[nl_section_name]=sections['cli']
 
-    print(nl_section['cli_nl_section: test.py_nl_jinja2'])
+    return nl_sections
+
 
 
 
