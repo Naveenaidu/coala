@@ -19,7 +19,7 @@ def get_temp_file_lang(nl_info_dict, temp_file):
             if temp_file == temp_file_name:
                 return lang
 
-def get_orig_file(nl_file_info, temp_file):
+def get_orig_file(nl_info_dict, temp_file):
     """
     Return the original file name for the temp_file
     """
