@@ -5,6 +5,27 @@ from collections import OrderedDict
 from coalib.settings.Section import Section, append_to_sections
 from pprint import pprint
 import os
+from importlib import import_module
+
+# The supported Parser for the language combination
+PARSER_LANG_COMB = [{'PyJinjaParser':{"python", "jinja2"}}]
+
+def get_parser(lang_comb):
+    """
+    Return the parser object for the combination of the languages
+    """
+    lang_comb = set(lang_comb.split(','))
+    parser_name = ''
+
+    for parser_lang_comb in PARSER_LANG_COMB:
+        for parser,language in parser_lang_comb.items():
+            if language == lang_comb:
+                parser_name = parser
+
+    parser_module_string = ('coalib.nestedlib.parsers.' + parser_name )
+    parser = getattr(import_module(parser_module_string), parser_name)
+    return parser()
+
 
 
 def get_nl_coala_sections(args):
@@ -21,8 +42,3 @@ def get_nl_coala_sections(args):
         nl_sections[nl_section_name] = sections[nl_section_name]
 
     return nl_sections
-
-if __name__ == '__main__':
-    args = default_arg_parser().parse_args()
-    print(bool(args.handle_nested))
-    get_nl_coala_sections(args)
