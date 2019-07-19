@@ -145,17 +145,28 @@ def run_coala(console_printer=None,
             arg_parser=arg_parser,
             arg_list=arg_list,
             args=args)
-
         logging.debug('Platform {} -- Python {}, coalib {}'
                       .format(platform.system(), platform.python_version(),
                               VERSION))
 
         settings_hash = get_settings_hash(sections, targets)
-        flush_cache = bool(sections['cli'].get('flush_cache', False) or
-                           settings_changed(None, settings_hash))
 
-        if cache is None and not sections['cli'].get('disable_caching', False):
-            cache = FileDictFileCache(None, os.getcwd(), flush_cache)
+        if bool(args.handle_nested):
+            # Since all the nl_coala_sections have the same settings values
+            # We choose the first sections and get the setting values from it.
+            nl_section = list(sections.values())[0]
+            flush_cache = bool(nl_section.get('flush_cache', False) or
+                               settings_changed(None, settings_hash))
+
+            if cache is None and not nl_section.get('disable_caching', False):
+                cache = FileDictFileCache(None, os.getcwd(), flush_cache)
+
+        else:
+            flush_cache = bool(sections['cli'].get('flush_cache', False) or
+                               settings_changed(None, settings_hash))
+
+            if cache is None and not sections['cli'].get('disable_caching', False):
+                cache = FileDictFileCache(None, os.getcwd(), flush_cache)
 
         if targets:
             sections = OrderedDict(
