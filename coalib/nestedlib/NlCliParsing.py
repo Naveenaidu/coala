@@ -74,7 +74,7 @@ def parse_nl_cli(args=None,
     append_to_sections(sections,
                        'file_lang',
                        get_temp_file_lang(nl_info_dict, temp_file_name),
-                       origin=os.getcwd(),
+                       origin=origin,
                        section_name=nl_section_name,
                        from_cli=True)
 
@@ -82,7 +82,7 @@ def parse_nl_cli(args=None,
     append_to_sections(sections,
                        'orig_file_name',
                        get_orig_file(nl_info_dict, temp_file_name),
-                       origin=os.getcwd(),
+                       origin=origin,
                        section_name=nl_section_name,
                        from_cli=True)
 
