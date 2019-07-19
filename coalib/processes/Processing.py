@@ -31,6 +31,9 @@ from coalib.parsing.Globbing import fnmatch
 from coalib.io.FileProxy import FileDictGenerator
 from coalib.io.File import File
 
+from coalib.nestedlib.NlCore import get_parser
+from coalib.nestedlib.NlFileHandler import get_nl_file_dict
+
 
 ACTIONS = [DoNothingAction,
            ApplyPatchAction,
@@ -373,12 +376,29 @@ def instantiate_processes(section,
                              and the arguments passed to each process which are
                              the same for each object.
     """
-    filename_list = collect_files(
-        glob_list(section.get('files', '')),
-        None,
-        ignored_file_paths=glob_list(section.get('ignore', '')),
-        limit_file_paths=glob_list(section.get('limit_files', '')),
-        section_name=section.name)
+    if section.get('handle_nested',False):
+        filename_list = collect_files(
+            glob_list(section.get('orig_file_name', '')),
+            None,
+            ignored_file_paths=glob_list(section.get('ignore', '')),
+            limit_file_paths=glob_list(section.get('limit_files', '')),
+            section_name=section.name)
+        orig_file_path = glob_list(section.get('orig_file_name', ''))[0]
+        parser = get_parser(section.get('languages').value)
+        temp_file_name = section.get('files').value
+        file_lang = section.get('file_lang').value
+        nl_file_dict = get_nl_file_dict(orig_file_path = orig_file_path, 
+                                        temp_file_name = temp_file_name, 
+                                        lang = file_lang, 
+                                        parser = parser)
+        
+    else:
+        filename_list = collect_files(
+            glob_list(section.get('files', '')),
+            None,
+            ignored_file_paths=glob_list(section.get('ignore', '')),
+            limit_file_paths=glob_list(section.get('limit_files', '')),
+            section_name=section.name)
 
     # This stores all matched files irrespective of whether coala is run
     # only on changed files or not. Global bears require all the files
@@ -434,12 +454,15 @@ def instantiate_processes(section,
                       'use the `--flush-cache` flag to see them.')
         filename_list = changed_files
 
-    # Note: the complete file dict is given as the file dict to bears and
-    # the whole project is accessible to every bear. However, local bears are
-    # run only for the changed files if caching is enabled.
-    file_dict = {filename: complete_file_dict[filename]
-                 for filename in filename_list
-                 if filename in complete_file_dict}
+    if section.get('handle_nested',False):
+        file_dict = nl_file_dict
+    else:
+        # Note: the complete file dict is given as the file dict to bears and
+        # the whole project is accessible to every bear. However, local bears are
+        # run only for the changed files if caching is enabled.
+        file_dict = {filename: complete_file_dict[filename]
+                     for filename in filename_list
+                     if filename in complete_file_dict}
 
     bear_runner_args = {'file_name_queue': filename_queue,
                         'local_bear_list': local_bear_list,
