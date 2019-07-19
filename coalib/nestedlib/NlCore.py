@@ -22,13 +22,7 @@ def get_nl_coala_sections(args):
 
     return nl_sections
 
-    #print(nl_sections['cli_nl_section: test.py_nl_python'],"\n")
-    #print(nl_sections['cli_nl_section: test2.py_nl_python'],"\n")
-    #print(nl_sections['cli_nl_section: test.py_nl_jinja2'],"\n")
-    #print(nl_sections['cli_nl_section: test2.py_nl_jinja2'],"\n")
-
-
-
 if __name__ == '__main__':
     args = default_arg_parser().parse_args()
+    print(bool(args.handle_nested))
     get_nl_coala_sections(args)
