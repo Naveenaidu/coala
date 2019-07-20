@@ -376,7 +376,7 @@ def instantiate_processes(section,
                              and the arguments passed to each process which are
                              the same for each object.
     """
-    if section.get('handle_nested',False):
+    if section.get('handle_nested', False):
         filename_list = collect_files(
             glob_list(section.get('orig_file_name', '')),
             None,
@@ -387,11 +387,11 @@ def instantiate_processes(section,
         parser = get_parser(section.get('languages').value)
         temp_file_name = section.get('files').value
         file_lang = section.get('file_lang').value
-        nl_file_dict = get_nl_file_dict(orig_file_path = orig_file_path, 
-                                        temp_file_name = temp_file_name, 
-                                        lang = file_lang, 
-                                        parser = parser)
-        
+        nl_file_dict = get_nl_file_dict(orig_file_path=orig_file_path,
+                                        temp_file_name=temp_file_name,
+                                        lang=file_lang,
+                                        parser=parser)
+
     else:
         filename_list = collect_files(
             glob_list(section.get('files', '')),
@@ -454,7 +454,7 @@ def instantiate_processes(section,
                       'use the `--flush-cache` flag to see them.')
         filename_list = changed_files
 
-    if section.get('handle_nested',False):
+    if section.get('handle_nested', False):
         file_dict = nl_file_dict
     else:
         # Note: the complete file dict is given as the file dict to bears and

@@ -8,7 +8,8 @@ from coalib.collecting.Collectors import (
     collect_bears, collect_bears_by_aspects)
 
 
-SUPPORTED_LANG_COMB = [{"python", "jinja2"}]
+SUPPORTED_LANG_COMB = [{'python', 'jinja2'}]
+
 
 def get_temp_file_lang(nl_info_dict, temp_file):
     """
@@ -19,6 +20,7 @@ def get_temp_file_lang(nl_info_dict, temp_file):
             if temp_file == temp_file_name:
                 return lang
 
+
 def get_orig_file(nl_info_dict, temp_file):
     """
     Return the original file name for the temp_file
@@ -27,6 +29,7 @@ def get_orig_file(nl_info_dict, temp_file):
         for lang, temp_file_name in file_info.items():
             if temp_file == temp_file_name:
                 return file
+
 
 def check_lang_support(lang_list):
     """
@@ -47,9 +50,9 @@ def check_lang_support(lang_list):
             lang_supported = True
 
     if not lang_supported:
-        logging.error("The language combination are not supported. " +
-                      "Please check if the languages are provided with" +
-                      "the correct names")
+        logging.error('The language combination are not supported. ' +
+                      'Please check if the languages are provided with' +
+                      'the correct names')
         raise SystemExit(2)
 
 
