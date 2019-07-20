@@ -243,12 +243,16 @@ def load_configuration(arg_list,
                         indicated after colon.)
     """
     if bool(args.handle_nested):
-        print("Inside load config - handle nested")
         nl_sections = get_nl_coala_sections(args)
         check_conflicts(nl_sections)
         sections = nl_sections
         targets = []
-    else:    
+
+        str_log_level = str(list(
+                            sections.values())[0].get('log_level', '')).upper()
+        logging.getLogger().setLevel(LOG_LEVEL.str_dict.get(str_log_level,
+                                                            LOG_LEVEL.INFO))
+    else:
         cli_sections = parse_cli(arg_list=arg_list, arg_parser=arg_parser,
                                  args=args)
         check_conflicts(cli_sections)
@@ -271,7 +275,8 @@ def load_configuration(arg_list,
             user_sections = load_config_file(
                 Constants.user_coafile, silent=True)
 
-            default_config = str(base_sections['default'].get('config', '.coafile'))
+            default_config = str(
+                base_sections['default'].get('config', '.coafile'))
             user_config = str(user_sections['default'].get(
                 'config', default_config))
             config = os.path.abspath(
@@ -513,7 +518,7 @@ def gather_configuration(acquire_settings,
                                               targets=targets,
                                               )
     # Nested Language mode works only with cli args for now. So we don't need to
-    # save the sections. 
+    # save the sections.
     if not bool(args.handle_nested):
         save_sections(sections)
         warn_nonexistent_targets(targets, sections)
