@@ -52,10 +52,10 @@ def parse_nl_cli(args=None,
     for arg_key, arg_value in sorted(vars(args).items()):
         if arg_key == 'settings' and arg_value is not None:
             parse_nl_custom_settings(sections,
-                                  nl_section_name,
-                                  arg_value,
-                                  origin,
-                                  line_parser)
+                                     nl_section_name,
+                                     arg_value,
+                                     origin,
+                                     line_parser)
         else:
             if isinstance(arg_value, list):
                 arg_value = ','.join([str(val) for val in arg_value])
