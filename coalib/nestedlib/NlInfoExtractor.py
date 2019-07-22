@@ -37,6 +37,7 @@ def check_lang_support(lang_list):
                       user.
     """
     lang_supported = False
+    lang_list = [lang.lower() for lang in lang_list]
     lang_set = set(lang_list)
 
     for supported_lang_set in SUPPORTED_LANG_COMB:
@@ -141,16 +142,6 @@ def nl_info_dict(args=None):
                             'python': ['PEP8Bear', 'SpaceConsistencyBear']
                           },
         'languages': ['python', 'jinja2'],
-        'nl_file_info': { 'test.py' : { 
-                                        'python' : 'test.py_nl_python',
-                                        'jinja2' : 'test.py_nl_jinja2'
-                                      },
-
-                          'test2.py': {
-                                        'python' : 'test2.py_nl_python',
-                                        'jinja2' : 'test2.py_nl_jinja2'
-                                      }   
-                        }
     }
     ```
     The details of keys in nl_info_dict are:
@@ -170,7 +161,13 @@ def nl_info_dict(args=None):
         if (arg_key == 'files' or arg_key == 'bears' or arg_key == 'languages'
                 or arg_key == 'bear_dirs'):
             arg_values = (arg_value[0].strip()).split(',')
-            nl_info_dict[arg_key] = arg_values
+            if arg_key == 'languages':
+                # In order to avoid the upper and lower case mistakes from user
+                # while defining the languages
+                arg_values = [lang.lower() for lang in arg_values]
+                nl_info_dict[arg_key] = arg_values
+            else:
+                nl_info_dict[arg_key] = arg_values
 
     check_lang_support(nl_info_dict['languages'])
 
@@ -205,6 +202,29 @@ def generate_arg_list(args=None):
     coala --handle-nested --languages=python,jinja2 --files=test.py,test2.py
     --bears=PEP8Bear,SpaceConsistencyBear,Jinja2Bear --settings use_space=True
     ```
+
+    If the above args are passed to generate_arg_list, the output of nl_info we 
+    get is:
+    ```
+    {
+        'bears': ['PEP8Bear', 'SpaceConsistencyBear', 'GitCommitBear'],
+        'files': ['test.py', 'test2.py'],
+        'lang_bear_dict': {
+                            'jinja2': ['SpaceConsistencyBear'],
+                            'python': ['PEP8Bear', 'SpaceConsistencyBear']
+                          },
+        'languages': ['python', 'jinja2'],
+        'nl_file_info': { 'test.py' : { 
+                                        'python' : 'test.py_nl_python',
+                                        'jinja2' : 'test.py_nl_jinja2'
+                                      },
+
+                          'test2.py': {
+                                        'python' : 'test2.py_nl_python',
+                                        'jinja2' : 'test2.py_nl_jinja2'
+                                      }   
+                        }
+    }
 
     When the above args are passed to generate_arg_list, it returns the
     following argument objects, which is equivalent to the following
