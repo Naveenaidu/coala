@@ -505,7 +505,3 @@ class NlFileHandler(unittest.TestCase):
                           '\n',
                           '\n')
         self.assertEqual(temp_file_dict[uut_temp_file_name], expected_tuple)
-
-
-if __name__ == '__main__':
-    unittest.main()
