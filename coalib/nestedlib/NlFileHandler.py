@@ -86,9 +86,6 @@ def get_line_list(nl_sections, orig_file_path):
             elif (line_nr == start_line):
                 if(start_column-1 == 0):
                     line_list[line_nr-1] = orig_line
-                else:
-                    line_list[line_nr-1] = (line[0:start_column-1] +
-                                        orig_line[start_column-1:end_orig_line])
 
             elif (line_nr == end_line):
                 if(end_column == len(orig_line)-1):
