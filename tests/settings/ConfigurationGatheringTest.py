@@ -98,6 +98,22 @@ class ConfigurationGatheringTest(unittest.TestCase):
 
         self.assertEqual(len(local_bears['cli']), 0)
 
+        with make_temp() as temporary:
+            sections, local_bears, global_bears, targets = (
+                    gather_configuration(
+                        *args,
+                        arg_list=['--no-config', '--handle-nested',
+                                  '--languages=python,jinja2', '--files=test.py',
+                                  ]))
+
+        self.assertEqual(
+            str(sections['cli_nl_section: test.py_nl_python']),
+            "cli_nl_section: test.py_nl_python {targets : '', " +
+            "bears : '', files : 'test.py_nl_python', " +
+            "handle_nested : 'True', languages : 'python,jinja2', " +
+            "no_config : 'True', file_lang : 'python', " +
+            "orig_file_name : 'test.py'}")
+
     @log_capture()
     def test_default_coafile_deprecation(self, capture):
         system_coafile_path = os.path.abspath(os.path.join(
@@ -318,6 +334,13 @@ class ConfigurationGatheringTest(unittest.TestCase):
                     ['--no-config', '--find-config'],
                     self.log_printer)
                 self.assertEqual(cm.exception.code, 2)
+
+            # Handle Nested
+            sections, targets = load_configuration(
+                ['--no-config', '--handle-nested', '--languages=python,jinja2',
+                 '--files=test.py', '--bears=PEP8Bear,SpaceConsistencyBear'])
+            self.assertIn('handle_nested',
+                          sections['cli_nl_section: test.py_nl_python'])
 
     def test_section_inheritance(self):
         current_dir = os.path.abspath(os.path.dirname(__file__))
