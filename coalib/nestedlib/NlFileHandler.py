@@ -113,7 +113,7 @@ def beautify_line_list(line_list):
 
     >>> line_list = ['', '\\n','asdas adasd', 'asdasdawq12\\n']
     >>> beautify_line_list(line_list)
-    ... ['\\n', '\\n', 'asdas adasd\\n', 'asdasdawq12\\n']
+    ('\\n', '\\n', 'asdas adasd\\n', 'asdasdawq12\\n')
 
     """
     for i, line in enumerate(line_list):
