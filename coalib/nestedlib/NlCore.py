@@ -2,14 +2,10 @@ from coalib.nestedlib.NlInfoExtractor import generate_arg_list
 from coalib.parsing.DefaultArgParser import default_arg_parser
 from coalib.nestedlib.NlCliParsing import parse_nl_cli
 from collections import OrderedDict
-from coalib.settings.Section import Section, append_to_sections
-from pprint import pprint
-import os
 from importlib import import_module
 
 from coalib.parsing.DefaultArgParser import default_arg_parser
 import logging
-
 
 
 # The supported Parser for the language combination
@@ -32,7 +28,8 @@ def get_parser(lang_comb):
     try:
         parser = getattr(import_module(parser_module_string), parser_name)
     except:
-        logging.error('No Parser found for the languages. Please check the args')
+        logging.error(
+            'No Parser found for the languages. Please check the args')
         raise SystemExit(2)
 
     return parser()
@@ -52,6 +49,7 @@ def get_nl_coala_sections(args):
         nl_sections[nl_section_name] = sections[nl_section_name]
 
     return nl_sections
+
 
 def nested_language(args=None, arg_list=None, arg_parser=None):
     """
