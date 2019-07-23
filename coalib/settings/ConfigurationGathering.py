@@ -16,7 +16,8 @@ from coalib.settings.SectionFilling import fill_settings
 from coalib.settings.Setting import Setting, path
 from string import Template
 
-from coalib.nestedlib.NlCore import get_nl_coala_sections
+from coalib.nestedlib.NlCore import get_nl_coala_sections, nested_language
+from coalib.parsing.DefaultArgParser import default_arg_parser
 
 COAFILE_OUTPUT = Template('$type \'$file\' $found!\n'
                           'Here\'s what you can do:\n'
@@ -242,7 +243,11 @@ def load_configuration(arg_list,
                         dict(str, Section), targets: list(str)). (Types
                         indicated after colon.)
     """
-    if bool(args.handle_nested):
+    # If args is None then nested_args will be used as a short circuit condition
+    if nested_language(args=args, arg_list=arg_list, arg_parser=arg_parser):
+        if args is None:
+            arg_parser = default_arg_parser() if arg_parser is None else arg_parser
+            args = arg_parser.parse_args(arg_list) 
         nl_sections = get_nl_coala_sections(args)
         check_conflicts(nl_sections)
         sections = nl_sections
@@ -519,10 +524,9 @@ def gather_configuration(acquire_settings,
                                               )
     # Nested Language mode works only with cli args for now. So we don't need to
     # save the sections.
-    if not bool(args.handle_nested):
+    if not nested_language(args=args, arg_list=arg_list, arg_parser=arg_parser):
         save_sections(sections)
         warn_nonexistent_targets(targets, sections)
-
     return (sections,
             local_bears,
             global_bears,
