@@ -25,6 +25,8 @@ from coalib.misc.CachingUtilities import (
 from coalib.parsing.FilterHelper import (
     apply_filters, collect_filters, InvalidFilterException)
 
+from coalib.nestedlib.NlCore import nested_language
+
 
 def do_nothing(*args):
     return True
@@ -151,7 +153,7 @@ def run_coala(console_printer=None,
 
         settings_hash = get_settings_hash(sections, targets)
 
-        if bool(args.handle_nested):
+        if nested_language(args=args, arg_list=arg_list, arg_parser=arg_parser):
             # Since all the nl_coala_sections have the same settings values
             # We choose the first sections and get the setting values from it.
             nl_section = list(sections.values())[0]

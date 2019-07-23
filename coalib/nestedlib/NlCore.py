@@ -7,6 +7,11 @@ from pprint import pprint
 import os
 from importlib import import_module
 
+from coalib.parsing.DefaultArgParser import default_arg_parser
+import logging
+
+
+
 # The supported Parser for the language combination
 PARSER_LANG_COMB = [{'PyJinjaParser': {'python', 'jinja2'}}]
 
@@ -24,7 +29,12 @@ def get_parser(lang_comb):
                 parser_name = parser
 
     parser_module_string = ('coalib.nestedlib.parsers.' + parser_name)
-    parser = getattr(import_module(parser_module_string), parser_name)
+    try:
+        parser = getattr(import_module(parser_module_string), parser_name)
+    except:
+        logging.error('No Parser found for the languages. Please check the args')
+        raise SystemExit(2)
+
     return parser()
 
 
@@ -42,3 +52,20 @@ def get_nl_coala_sections(args):
         nl_sections[nl_section_name] = sections[nl_section_name]
 
     return nl_sections
+
+def nested_language(args=None, arg_list=None, arg_parser=None):
+    """
+    Check if handle_nested condition is present in arguments
+    """
+    handle_nested = False
+    # If args is None check if arg_list has handle_nested.
+    if args is None:
+        arg_parser = default_arg_parser() if arg_parser is None else arg_parser
+        nested_args = arg_parser.parse_args(arg_list)
+        if nested_args.handle_nested:
+            handle_nested = True
+    else:
+        if args.handle_nested:
+            handle_nested = True
+
+    return handle_nested
