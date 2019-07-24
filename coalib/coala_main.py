@@ -159,9 +159,7 @@ def run_coala(console_printer=None,
             nl_section = list(sections.values())[0]
             flush_cache = bool(nl_section.get('flush_cache', False) or
                                settings_changed(None, settings_hash))
-
-            if cache is None and not nl_section.get('disable_caching', False):
-                cache = FileDictFileCache(None, os.getcwd(), flush_cache)
+            cache = FileDictFileCache(None, os.getcwd(), flush_cache)
 
         else:
             flush_cache = bool(sections['cli'].get('flush_cache', False) or
