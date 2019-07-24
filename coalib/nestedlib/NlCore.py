@@ -35,16 +35,25 @@ def get_parser(lang_comb):
     return parser()
 
 
-def get_nl_coala_sections(args):
+def get_nl_coala_sections(args=None, arg_list=None, arg_parser=None):
     """
     Generate the coala sections for all the nested languages.
     """
+    assert not (arg_list and args), (
+        'Either call parse_cli() with an arg_list of CLI arguments or '
+        'with pre-parsed args, but not with both.')
+
+    if args is None:
+        arg_parser = default_arg_parser() if arg_parser is None else arg_parser
+        args = arg_parser.parse_args(arg_list)
+
     arg_list, nl_info_dict = generate_arg_list(args)
     nl_sections = OrderedDict()
     for args in arg_list:
         temp_file_name = args.__dict__['files']
         nl_section_name = 'cli_nl_section: ' + temp_file_name
-        sections = parse_nl_cli(args=args, nl_section_name=nl_section_name,
+        sections = parse_nl_cli(args=args,
+                                nl_section_name=nl_section_name,
                                 nl_info_dict=nl_info_dict)
         nl_sections[nl_section_name] = sections[nl_section_name]
 

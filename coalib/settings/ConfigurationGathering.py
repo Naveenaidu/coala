@@ -245,10 +245,8 @@ def load_configuration(arg_list,
     """
     # If args is None then nested_args will be used as a short circuit condition
     if nested_language(args=args, arg_list=arg_list, arg_parser=arg_parser):
-        if args is None:
-            arg_parser = default_arg_parser() if arg_parser is None else arg_parser
-            args = arg_parser.parse_args(arg_list)
-        nl_sections = get_nl_coala_sections(args)
+        nl_sections = get_nl_coala_sections(args=args, arg_list=arg_list,
+                                            arg_parser=arg_parser)
         check_conflicts(nl_sections)
         sections = nl_sections
         targets = []
