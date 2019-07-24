@@ -28,8 +28,7 @@ def get_parser(lang_comb):
     try:
         parser = getattr(import_module(parser_module_string), parser_name)
     except:
-        logging.error(
-            'No Parser found for the languages. Please check the args')
+        logging.error('No Parser found for the languages combination')
         raise SystemExit(2)
 
     return parser()
