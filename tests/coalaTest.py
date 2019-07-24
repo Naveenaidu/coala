@@ -441,4 +441,3 @@ class coalaTest(unittest.TestCase):
         self.assertNotEqual(retval, 0,
                                     'coala must return nonzero when '
                                     'errors occured')
-    
