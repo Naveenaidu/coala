@@ -40,8 +40,9 @@ def parse_nl_cli(args=None,
                                         as keys and the sections themselves
                                         as value.
     """
+
     origin += os.path.sep
-    sections = OrderedDict(cli=Section(nl_section_name))
+    sections = OrderedDict()
     line_parser = LineParser(key_value_delimiters,
                              comment_separators,
                              key_delimiters,
