@@ -192,6 +192,61 @@ class ProcessingTest(unittest.TestCase):
         # No global bear
         self.assertEqual(len(results[2]), 0)
 
+    def test_nested_language_run(self):
+        config_path = os.path.abspath(os.path.join(
+            os.path.dirname(__file__),
+            'section_executor_test_files'))
+
+        testcode_p_path = os.path.join(config_path,'test.py.jj2')
+
+        sections, local_bears, global_bears, targets = (
+                    gather_configuration(
+                        lambda *args: self.result_queue.put(args[2]),
+                        arg_list=[
+                            '--no-config', '--handle-nested',
+                            '--bears=PEP8Bear,Jinja2Bear',
+                            '--languages=python,jinja2', 
+                            '--files='+testcode_p_path]))
+
+        cache = FileCache(self.log_printer, 'coala_test', flush_cache=True)
+        section_name = 'cli_nl_section: '+ testcode_p_path+'_nl_python'
+        results = execute_section(sections[section_name],
+                                  global_bears[section_name],
+                                  local_bears[section_name],
+                                  lambda *args: self.result_queue.put(args[2]),
+                                  cache,
+                                  self.log_printer,
+                                  console_printer=self.console_printer)
+        self.assertTrue(results[0])
+
+    def test_nested_language_empty_run(self):
+        # If the nested language file is empty
+        config_path = os.path.abspath(os.path.join(
+            os.path.dirname(__file__),
+            'section_executor_test_files'))
+
+        testcode_p_path = os.path.join(config_path,'test.py')
+
+        sections, local_bears, global_bears, targets = (
+                    gather_configuration(
+                        lambda *args: self.result_queue.put(args[2]),
+                        arg_list=[
+                            '--no-config', '--handle-nested',
+                            '--bears=PEP8Bear,Jinja2Bear',
+                            '--languages=python,jinja2', 
+                            '--files='+testcode_p_path]))
+
+        cache = FileCache(self.log_printer, 'coala_test', flush_cache=True)
+        section_name = 'cli_nl_section: '+ testcode_p_path+'_nl_python'
+        results = execute_section(sections[section_name],
+                                  global_bears[section_name],
+                                  local_bears[section_name],
+                                  lambda *args: self.result_queue.put(args[2]),
+                                  cache,
+                                  self.log_printer,
+                                  console_printer=self.console_printer)
+        self.assertFalse(results[0])
+ 
     def test_mixed_run(self):
         self.sections['mixed'].append(Setting('jobs', '1'))
         log_printer = ListLogPrinter()
@@ -811,3 +866,6 @@ class ProcessingTest_PrintResult(unittest.TestCase):
                                       self.section, self.log_printer, {}, [],
                                       console_printer=self.console_printer)
         self.assertEqual(newres, [])
+
+if __name__ == '__main__':
+    unittest.main()
