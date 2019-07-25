@@ -37,7 +37,7 @@ from tests.TestUtilities import (
 )
 from testfixtures import log_capture
 
-
+@pytest.mark.usefixtures('disable_bears')
 class ConfigurationGatheringTest(unittest.TestCase):
 
     def setUp(self):
@@ -452,7 +452,6 @@ class ValidateAndInjectLanguageTest(unittest.TestCase):
                 'not recognized by coala.\'')
             self.assertIsNone(self.section.language)
 
-
 class ConfigurationGatheringCollectionTest(unittest.TestCase):
 
     def setUp(self):
@@ -493,9 +492,14 @@ class ConfigurationGatheringCollectionTest(unittest.TestCase):
                          "<class 'LineCountTestBear.LineCountTestBear'>")
         self.assertEqual(len(global_bears['cli']), 0)
 
+
 class ConfigurationGatheringNestedLanguageTest(unittest.TestCase):
 
-    def gather_configuration_nested_language(self):
+    def setUp(self):
+          self.log_printer = LogPrinter(NullPrinter())
+
+    def test_gather_configuration_nested_language(self):
+      args = (lambda *args: True, self.log_printer)
       with make_temp() as temporary:
           test_dir_path = os.path.abspath(__file__ + "/../..")
           test_bear_path = os.path.join(test_dir_path, "test_bears")
@@ -510,7 +514,7 @@ class ConfigurationGatheringNestedLanguageTest(unittest.TestCase):
           self.assertEqual(
               str(sections['cli_nl_section: test.py_nl_python']),
               "cli_nl_section: test.py_nl_python {targets : '', " +
-              "bear_dirs : '/home/theprophet/git/coala-repos/coala/tests/test_bears', "+
+              "bear_dirs : '"+ test_bear_path +"', "+
               "bears : 'PEP8TestBear', files : 'test.py_nl_python', " +
               "handle_nested : 'True', languages : 'python,jinja2', " +
               "no_config : 'True', file_lang : 'python', " +
