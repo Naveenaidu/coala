@@ -217,7 +217,8 @@ class ProcessingTest(unittest.TestCase):
                                   cache,
                                   self.log_printer,
                                   console_printer=self.console_printer)
-        self.assertTrue(results[0])
+        # We get no results back, because we use dummy bears.
+        self.assertFalse(results[0])
 
     def test_nested_language_empty_run(self):
         # If the nested language file is empty
