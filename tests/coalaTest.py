@@ -427,7 +427,7 @@ class coalaTest(unittest.TestCase):
         testcode_p_path = os.path.join(config_path,'test.py')
         uut_arg_list=[
                         '--no-config', '--handle-nested',
-                        '--bears=PEP8Bear,Jinja2Bear',
+                        '--bears=PEP8TestBear,Jinja2TestBear',
                         '--languages=python,jinja2', 
                         '--files='+testcode_p_path,
                       ]
