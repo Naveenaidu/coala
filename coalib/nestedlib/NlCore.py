@@ -54,8 +54,6 @@ def get_nl_coala_sections(args=None, arg_list=None, arg_parser=None):
         sections = parse_nl_cli(args=args,
                                 nl_section_name=nl_section_name,
                                 nl_info_dict=nl_info_dict)
-        print(temp_file_name)
-        print(sections)
         nl_sections[nl_section_name] = sections[nl_section_name]
 
     return nl_sections

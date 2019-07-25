@@ -45,7 +45,7 @@ class NlCoreTest(unittest.TestCase):
         self.assertEqual(
             str(uut_nl_sections['cli_nl_section: test.py_nl_python']),
             "cli_nl_section: test.py_nl_python {targets : '', " +
-            "bear_dirs : "+ self.test_bear_path +", "+
+            "bear_dirs : '"+ self.test_bear_path +"', "+
             "bears : 'PEP8TestBear', files : 'test.py_nl_python', " +
             "handle_nested : 'True', languages : 'python,jinja2', " +
             "no_config : 'True', file_lang : 'python', " +
@@ -56,7 +56,7 @@ class NlCoreTest(unittest.TestCase):
         self.assertEqual(
             str(uut_nl_sections['cli_nl_section: test.py_nl_python']),
             "cli_nl_section: test.py_nl_python {targets : '', " +
-            "bear_dirs : "+ self.test_bear_path +", "+
+            "bear_dirs : '"+ self.test_bear_path +"', "+
             "bears : 'PEP8TestBear', files : 'test.py_nl_python', " +
             "handle_nested : 'True', languages : 'python,jinja2', " +
             "no_config : 'True', file_lang : 'python', " +
