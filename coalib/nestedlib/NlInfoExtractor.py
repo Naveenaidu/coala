@@ -55,22 +55,6 @@ def check_lang_support(lang_list):
                       'the correct names')
         raise SystemExit(2)
 
-"""
-def get_bear_dirs(nl_info_dict):
-    '''
-    Get the bear dirs.
-    '''
-    bear_dirs = nl_info_dict.get('bear_dirs', '')
-    for bear_dir in bear_dirs:
-        sys.path.append(bear_dir)
-    bear_dir_globs = [
-        os.path.join(glob_escape(bear_dir), '**')
-        for bear_dir in bear_dirs]
-    bear_dir_globs += [
-        os.path.join(glob_escape(bear_dir), '**')
-        for bear_dir in collect_registered_bears_dirs('coalabears')]
-    return bear_dir_globs
-"""
 
 def generate_lang_bear_dict(nl_info_dict):
     """
@@ -93,21 +77,18 @@ def generate_lang_bear_dict(nl_info_dict):
     }
 
     """
+    print(nl_info_dict)
     lang_bear_dict = {}
-    #bear_dirs = get_bear_dirs(nl_info_dict)
     bears = nl_info_dict.get('bears', '')
-    """
-    local_bears, global_bears = collect_bears(
-        bear_dirs,
-        bears,
-        [BEAR_KIND.LOCAL, BEAR_KIND.GLOBAL])
-    """
+    bear_dirs = nl_info_dict.get('bear_dirs', None)
+
     from coalib.settings.Section import Section
     local_bears, global_bears = collect_bears(
-        Section('').bear_dirs(),
+        bear_dirs if bear_dirs else Section('').bear_dirs(),
         bears,
         [BEAR_KIND.LOCAL, BEAR_KIND.GLOBAL],
         warn_if_unused_glob=False)
+    print(local_bears, global_bears)
 
 
     # Initialze the lang_bear_dict
