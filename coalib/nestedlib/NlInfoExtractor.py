@@ -77,7 +77,6 @@ def generate_lang_bear_dict(nl_info_dict):
     }
 
     """
-    print(nl_info_dict)
     lang_bear_dict = {}
     bears = nl_info_dict.get('bears', '')
     bear_dirs = nl_info_dict.get('bear_dirs', None)
@@ -88,7 +87,6 @@ def generate_lang_bear_dict(nl_info_dict):
         bears,
         [BEAR_KIND.LOCAL, BEAR_KIND.GLOBAL],
         warn_if_unused_glob=False)
-    print(local_bears, global_bears)
 
 
     # Initialze the lang_bear_dict
