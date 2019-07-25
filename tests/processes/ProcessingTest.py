@@ -198,6 +198,8 @@ class ProcessingTest(unittest.TestCase):
             'section_executor_test_files'))
 
         testcode_p_path = os.path.join(config_path,'test.py.jj2')
+        test_dir_path = os.path.abspath(__file__ + "/../..")
+        test_bear_path = os.path.join(test_dir_path, "test_bears")
 
         sections, local_bears, global_bears, targets = (
                     gather_configuration(
@@ -205,6 +207,7 @@ class ProcessingTest(unittest.TestCase):
                         arg_list=[
                             '--no-config', '--handle-nested',
                             '--bears=PEP8TestBear,Jinja2TestBear',
+                            '--bear-dirs='+test_bear_path,
                             '--languages=python,jinja2', 
                             '--files='+testcode_p_path]))
 
@@ -226,6 +229,8 @@ class ProcessingTest(unittest.TestCase):
             os.path.dirname(__file__),
             'section_executor_test_files'))
 
+        test_dir_path = os.path.abspath(__file__ + "/../..")
+        test_bear_path = os.path.join(test_dir_path, "test_bears")
         testcode_p_path = os.path.join(config_path,'test.py')
 
         sections, local_bears, global_bears, targets = (
@@ -234,6 +239,7 @@ class ProcessingTest(unittest.TestCase):
                         arg_list=[
                             '--no-config', '--handle-nested',
                             '--bears=PEP8TestBear,Jinja2TestBear',
+                            '--bear-dirs='+test_bear_path,
                             '--languages=python,jinja2', 
                             '--files='+testcode_p_path]))
 
