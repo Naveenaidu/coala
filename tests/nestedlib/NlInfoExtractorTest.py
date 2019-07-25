@@ -16,19 +16,19 @@ class NlInfoExtractor(unittest.TestCase):
         # Both the upper case and lower case is supported in `languages`
         # argument
         self.args = self.arg_parser.parse_args(['-f', 'test.py.jj2,test2.py.jj2',
-                                                '-b', 'PEP8Bear,Jinja2Bear,SpaceConsistencyBear',
+                                                '-b', 'PEP8TestBear,Jinja2TestBear,LineCountTestBear',
                                                 '--handle-nested', '--languages', 'PYTHON,Jinja2'])
 
     def test_nl_info_dict(self):
 
         nl_info_dictionay = nl_info_dict(self.args)
         expected_dictionary = {
-            'bears': ['PEP8Bear', 'Jinja2Bear', 'SpaceConsistencyBear'],
+            'bears': ['PEP8TestBear', 'Jinja2TestBear', 'LineCountTestBear'],
             'files': ['test.py.jj2', 'test2.py.jj2'],
             'languages': ['python', 'jinja2'],
             'lang_bear_dict': {
-                             'jinja2': ['Jinja2Bear', 'SpaceConsistencyBear'],
-                             'python': ['PEP8Bear', 'SpaceConsistencyBear']
+                             'jinja2': ['Jinja2TestBear', 'LineCountTestBear'],
+                             'python': ['PEP8TestBear', 'LineCountTestBear']
 
             }
         }
@@ -55,8 +55,8 @@ class NlInfoExtractor(unittest.TestCase):
         nl_info_dictionay = nl_info_dict(self.args)
         uut_lang_bear_dict = generate_lang_bear_dict(nl_info_dictionay)
         expected_lang_bear_dict = {
-                             'jinja2': ['Jinja2Bear', 'SpaceConsistencyBear'],
-                             'python': ['PEP8Bear', 'SpaceConsistencyBear']
+                             'jinja2': ['Jinja2TestBear', 'LineCountTestBear'],
+                             'python': ['PEP8TestBear', 'LineCountTestBear']
 
                         }
         self.assertEqual(uut_lang_bear_dict, expected_lang_bear_dict)
@@ -81,34 +81,34 @@ class NlInfoExtractor(unittest.TestCase):
         # First Argument object
         arg1 = deepcopy(self.args)
         arg1.__dict__['files'] = 'test.py.jj2_nl_python'
-        arg1.__dict__['bears'] = 'PEP8Bear,SpaceConsistencyBear'
+        arg1.__dict__['bears'] = 'PEP8TestBear,LineCountTestBear'
         arg_list.append(arg1)
 
         # Second Argument object
         arg2 = deepcopy(self.args)
         arg2.__dict__['files'] = 'test2.py.jj2_nl_python'
-        arg2.__dict__['bears'] = 'PEP8Bear,SpaceConsistencyBear'
+        arg2.__dict__['bears'] = 'PEP8TestBear,LineCountTestBear'
         arg_list.append(arg2)
 
         # Third Argument Object
         arg3 = deepcopy(self.args)
         arg3.__dict__['files'] = 'test.py.jj2_nl_jinja2'
-        arg3.__dict__['bears'] = 'Jinja2Bear,SpaceConsistencyBear'
+        arg3.__dict__['bears'] = 'Jinja2TestBear,LineCountTestBear'
         arg_list.append(arg3)
 
         # Fourth Argument Object
         arg4 = deepcopy(self.args)
         arg4.__dict__['files'] = 'test2.py.jj2_nl_jinja2'
-        arg4.__dict__['bears'] = 'Jinja2Bear,SpaceConsistencyBear'
+        arg4.__dict__['bears'] = 'Jinja2TestBear,LineCountTestBear'
         arg_list.append(arg4)
 
         # Expected nl_info_dict
         expected_nl_info = {
-            'bears': ['PEP8Bear', 'Jinja2Bear', 'SpaceConsistencyBear'],
+            'bears': ['PEP8TestBear', 'Jinja2TestBear', 'LineCountTestBear'],
             'files': ['test.py.jj2', 'test2.py.jj2'],
             'lang_bear_dict': {
-                                'jinja2': ['Jinja2Bear', 'SpaceConsistencyBear'],
-                                'python': ['PEP8Bear', 'SpaceConsistencyBear']
+                                'jinja2': ['Jinja2TestBear', 'LineCountTestBear'],
+                                'python': ['PEP8TestBear', 'LineCountTestBear']
                             },
             'languages': ['python', 'jinja2'],
             'nl_file_info': {'test.py.jj2': {

@@ -38,7 +38,6 @@ from tests.TestUtilities import (
 from testfixtures import log_capture
 
 
-@pytest.mark.usefixtures('disable_bears')
 class ConfigurationGatheringTest(unittest.TestCase):
 
     def setUp(self):
@@ -81,7 +80,7 @@ class ConfigurationGatheringTest(unittest.TestCase):
                     *args,
                     arg_list=['-S', 'test=5', '-c', temporary,
                               '-s'] + self.min_args))
-
+        print(local_bears, global_bears)
         self.assertEqual(
             str(sections['cli']),
             "cli {bears : 'JavaTestBear', config : " +
@@ -97,23 +96,6 @@ class ConfigurationGatheringTest(unittest.TestCase):
                                                '-b LineCountBear -s']))
 
         self.assertEqual(len(local_bears['cli']), 0)
-
-        with make_temp() as temporary:
-            sections, local_bears, global_bears, targets = (
-                    gather_configuration(
-                        *args,
-                        arg_list=['--no-config', '--handle-nested', 
-                                  '--bears=PEP8Bear,Jinja2Bear',
-                                  '--languages=python,jinja2', '--files=test.py',
-                                  ]))
-
-        self.assertEqual(
-            str(sections['cli_nl_section: test.py_nl_python']),
-            "cli_nl_section: test.py_nl_python {targets : '', " +
-            "bears : 'PEP8Bear', files : 'test.py_nl_python', " +
-            "handle_nested : 'True', languages : 'python,jinja2', " +
-            "no_config : 'True', file_lang : 'python', " +
-            "orig_file_name : 'test.py'}")
 
     @log_capture()
     def test_default_coafile_deprecation(self, capture):
@@ -339,7 +321,7 @@ class ConfigurationGatheringTest(unittest.TestCase):
             # Handle Nested
             sections, targets = load_configuration(
                 ['--no-config', '--handle-nested', '--languages=python,jinja2',
-                 '--files=test.py', '--bears=PEP8Bear,SpaceConsistencyBear'])
+                 '--files=test.py', '--bears=PEP8TestBear,SpaceConsistencyTestBear'])
             self.assertIn('handle_nested',
                           sections['cli_nl_section: test.py_nl_python'])
 
@@ -510,3 +492,26 @@ class ConfigurationGatheringCollectionTest(unittest.TestCase):
         self.assertEqual(str(local_bears['cli'][2]),
                          "<class 'LineCountTestBear.LineCountTestBear'>")
         self.assertEqual(len(global_bears['cli']), 0)
+
+class ConfigurationGatheringNestedLanguageTest(unittest.TestCase):
+
+    def gather_configuration_nested_language(self):
+      with make_temp() as temporary:
+          test_dir_path = os.path.abspath(__file__ + "/../..")
+          test_bear_path = os.path.join(test_dir_path, "test_bears")
+          sections, local_bears, global_bears, targets = (
+                  gather_configuration(
+                      *args,
+                      arg_list=['--no-config', '--handle-nested', 
+                                '--bears=PEP8TestBear,Jinja2TestBear',
+                                '--languages=python,jinja2', '--files=test.py',
+                                '--bear-dirs='+test_bear_path]))
+
+          self.assertEqual(
+              str(sections['cli_nl_section: test.py_nl_python']),
+              "cli_nl_section: test.py_nl_python {targets : '', " +
+              "bear_dirs : '/home/theprophet/git/coala-repos/coala/tests/test_bears', "+
+              "bears : 'PEP8TestBear', files : 'test.py_nl_python', " +
+              "handle_nested : 'True', languages : 'python,jinja2', " +
+              "no_config : 'True', file_lang : 'python', " +
+              "orig_file_name : 'test.py'}")

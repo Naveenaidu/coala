@@ -14,7 +14,7 @@ class NlCoreTest(unittest.TestCase):
     def setUp(self):
         self.arg_parser = default_arg_parser()
         self.arg_list = ['--no-config', '--handle-nested',
-                         '--bears=PEP8Bear,Jinja2Bear',
+                         '--bears=PEP8TestBear,Jinja2TestBear',
                          '--languages=python,jinja2', '--files=test.py',
                          ]
         self.args = self.arg_parser.parse_args(self.arg_list)
@@ -40,7 +40,7 @@ class NlCoreTest(unittest.TestCase):
         self.assertEqual(
             str(uut_nl_sections['cli_nl_section: test.py_nl_python']),
             "cli_nl_section: test.py_nl_python {targets : '', " +
-            "bears : 'PEP8Bear', files : 'test.py_nl_python', " +
+            "bears : 'PEP8TestBear', files : 'test.py_nl_python', " +
             "handle_nested : 'True', languages : 'python,jinja2', " +
             "no_config : 'True', file_lang : 'python', " +
             "orig_file_name : 'test.py'}")
@@ -50,7 +50,7 @@ class NlCoreTest(unittest.TestCase):
         self.assertEqual(
             str(uut_nl_sections['cli_nl_section: test.py_nl_python']),
             "cli_nl_section: test.py_nl_python {targets : '', " +
-            "bears : 'PEP8Bear', files : 'test.py_nl_python', " +
+            "bears : 'PEP8TestBear', files : 'test.py_nl_python', " +
             "handle_nested : 'True', languages : 'python,jinja2', " +
             "no_config : 'True', file_lang : 'python', " +
             "orig_file_name : 'test.py'}")
