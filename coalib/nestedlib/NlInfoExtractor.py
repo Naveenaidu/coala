@@ -5,7 +5,7 @@ from coalib.bears.BEAR_KIND import BEAR_KIND
 from coalib.collecting.Collectors import collect_registered_bears_dirs
 from coalib.parsing.Globbing import glob_escape
 from coalib.collecting.Collectors import (
-    collect_bears, collect_bears_by_aspects)
+    collect_bears, collect_bears_by_aspects, get_all_bears)
 
 
 SUPPORTED_LANG_COMB = [{'python', 'jinja2'}]
@@ -55,11 +55,11 @@ def check_lang_support(lang_list):
                       'the correct names')
         raise SystemExit(2)
 
-
+"""
 def get_bear_dirs(nl_info_dict):
-    """
+    '''
     Get the bear dirs.
-    """
+    '''
     bear_dirs = nl_info_dict.get('bear_dirs', '')
     for bear_dir in bear_dirs:
         sys.path.append(bear_dir)
@@ -70,7 +70,7 @@ def get_bear_dirs(nl_info_dict):
         os.path.join(glob_escape(bear_dir), '**')
         for bear_dir in collect_registered_bears_dirs('coalabears')]
     return bear_dir_globs
-
+"""
 
 def generate_lang_bear_dict(nl_info_dict):
     """
@@ -94,12 +94,21 @@ def generate_lang_bear_dict(nl_info_dict):
 
     """
     lang_bear_dict = {}
-    bear_dirs = get_bear_dirs(nl_info_dict)
+    #bear_dirs = get_bear_dirs(nl_info_dict)
     bears = nl_info_dict.get('bears', '')
+    """
     local_bears, global_bears = collect_bears(
         bear_dirs,
         bears,
         [BEAR_KIND.LOCAL, BEAR_KIND.GLOBAL])
+    """
+    from coalib.settings.Section import Section
+    local_bears, global_bears = collect_bears(
+        Section('').bear_dirs(),
+        bears,
+        [BEAR_KIND.LOCAL, BEAR_KIND.GLOBAL],
+        warn_if_unused_glob=False)
+
 
     # Initialze the lang_bear_dict
     for lang in nl_info_dict.get('languages'):
@@ -107,6 +116,7 @@ def generate_lang_bear_dict(nl_info_dict):
 
     # Create a dictionary for local bears and global bears
     for bear in local_bears + global_bears:
+    #for bear in bears:
 
         bear_lang = [lang.lower() for lang in bear.LANGUAGES]
 
