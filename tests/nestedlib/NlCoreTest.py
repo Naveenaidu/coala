@@ -40,6 +40,7 @@ class NlCoreTest(unittest.TestCase):
 
     def test_get_nl_coala_sections(self):
 
+        self.maxDiff = None
         uut_nl_sections = get_nl_coala_sections(args=self.args)
         self.assertEqual(
             str(uut_nl_sections['cli_nl_section: test.py_nl_python']),
