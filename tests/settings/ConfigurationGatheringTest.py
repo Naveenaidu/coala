@@ -102,14 +102,15 @@ class ConfigurationGatheringTest(unittest.TestCase):
             sections, local_bears, global_bears, targets = (
                     gather_configuration(
                         *args,
-                        arg_list=['--no-config', '--handle-nested',
+                        arg_list=['--no-config', '--handle-nested', 
+                                  '--bears=PEP8Bear,Jinja2Bear',
                                   '--languages=python,jinja2', '--files=test.py',
                                   ]))
 
         self.assertEqual(
             str(sections['cli_nl_section: test.py_nl_python']),
             "cli_nl_section: test.py_nl_python {targets : '', " +
-            "bears : '', files : 'test.py_nl_python', " +
+            "bears : 'PEP8Bear', files : 'test.py_nl_python', " +
             "handle_nested : 'True', languages : 'python,jinja2', " +
             "no_config : 'True', file_lang : 'python', " +
             "orig_file_name : 'test.py'}")
