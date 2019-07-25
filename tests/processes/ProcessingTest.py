@@ -204,7 +204,7 @@ class ProcessingTest(unittest.TestCase):
                         lambda *args: self.result_queue.put(args[2]),
                         arg_list=[
                             '--no-config', '--handle-nested',
-                            '--bears=PEP8Bear,Jinja2Bear',
+                            '--bears=PEP8TestBear,Jinja2TestBear',
                             '--languages=python,jinja2', 
                             '--files='+testcode_p_path]))
 
@@ -232,7 +232,7 @@ class ProcessingTest(unittest.TestCase):
                         lambda *args: self.result_queue.put(args[2]),
                         arg_list=[
                             '--no-config', '--handle-nested',
-                            '--bears=PEP8Bear,Jinja2Bear',
+                            '--bears=PEP8TestBear,Jinja2TestBear',
                             '--languages=python,jinja2', 
                             '--files='+testcode_p_path]))
 
