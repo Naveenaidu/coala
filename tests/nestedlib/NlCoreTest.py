@@ -1,3 +1,4 @@
+import os
 import unittest
 import logging
 
@@ -13,9 +14,12 @@ class NlCoreTest(unittest.TestCase):
 
     def setUp(self):
         self.arg_parser = default_arg_parser()
+        self.test_dir_path = os.path.abspath(__file__ + "/../..")
+        self.test_bear_path = os.path.join(self.test_dir_path, "test_bears")
         self.arg_list = ['--no-config', '--handle-nested',
                          '--bears=PEP8TestBear,Jinja2TestBear',
                          '--languages=python,jinja2', '--files=test.py',
+                         '--bear-dirs='+self.test_bear_path
                          ]
         self.args = self.arg_parser.parse_args(self.arg_list)
 
@@ -40,6 +44,7 @@ class NlCoreTest(unittest.TestCase):
         self.assertEqual(
             str(uut_nl_sections['cli_nl_section: test.py_nl_python']),
             "cli_nl_section: test.py_nl_python {targets : '', " +
+            "bear_dirs : '/home/theprophet/git/coala-repos/coala/tests/test_bears', "+
             "bears : 'PEP8TestBear', files : 'test.py_nl_python', " +
             "handle_nested : 'True', languages : 'python,jinja2', " +
             "no_config : 'True', file_lang : 'python', " +
@@ -50,6 +55,7 @@ class NlCoreTest(unittest.TestCase):
         self.assertEqual(
             str(uut_nl_sections['cli_nl_section: test.py_nl_python']),
             "cli_nl_section: test.py_nl_python {targets : '', " +
+            "bear_dirs : '/home/theprophet/git/coala-repos/coala/tests/test_bears', "+
             "bears : 'PEP8TestBear', files : 'test.py_nl_python', " +
             "handle_nested : 'True', languages : 'python,jinja2', " +
             "no_config : 'True', file_lang : 'python', " +

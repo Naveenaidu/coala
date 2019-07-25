@@ -1,3 +1,4 @@
+import os
 import unittest
 import logging
 from copy import deepcopy
@@ -13,17 +14,21 @@ class NlInfoExtractor(unittest.TestCase):
 
     def setUp(self):
         self.arg_parser = default_arg_parser()
+        self.test_dir_path = os.path.abspath(__file__ + "/../..")
+        self.test_bear_path = os.path.join(self.test_dir_path, "test_bears")
         # Both the upper case and lower case is supported in `languages`
         # argument
         self.args = self.arg_parser.parse_args(['-f', 'test.py.jj2,test2.py.jj2',
                                                 '-b', 'PEP8TestBear,Jinja2TestBear,LineCountTestBear',
-                                                '--handle-nested', '--languages', 'PYTHON,Jinja2'])
+                                                '--handle-nested', '--languages', 'PYTHON,Jinja2',
+                                                '--bear-dirs='+self.test_bear_path])
 
     def test_nl_info_dict(self):
 
         nl_info_dictionay = nl_info_dict(self.args)
         expected_dictionary = {
             'bears': ['PEP8TestBear', 'Jinja2TestBear', 'LineCountTestBear'],
+            'bear_dirs' : [self.test_bear_path],
             'files': ['test.py.jj2', 'test2.py.jj2'],
             'languages': ['python', 'jinja2'],
             'lang_bear_dict': {
@@ -105,6 +110,7 @@ class NlInfoExtractor(unittest.TestCase):
         # Expected nl_info_dict
         expected_nl_info = {
             'bears': ['PEP8TestBear', 'Jinja2TestBear', 'LineCountTestBear'],
+            'bear_dirs' : [self.test_bear_path],
             'files': ['test.py.jj2', 'test2.py.jj2'],
             'lang_bear_dict': {
                                 'jinja2': ['Jinja2TestBear', 'LineCountTestBear'],
