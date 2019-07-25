@@ -105,17 +105,11 @@ before_install:
   # Apart from builds with python 2.7 and 3.5, it installs setuptools
   # twice. So, it is required to uninstall one version manually.
   - pip uninstall setuptools --yes
-<<<<<<< HEAD
+
   - pip uninstall setuptools --yes || true
   - pip uninstall setuptools --yes || true
   - pip uninstall pipenv --yes || true
   - pip install pip==9.0.1 setuptools==21.2.2
-=======
-  - pip install pip==9 setuptools==21
-  - pip install --upgrade --force-reinstall "setuptools==21"
->>>>>>> .travis.yml: Fix setuptools
-  - python .misc/check_setuptools.py
-  
 
   # https://github.com/coala/coala/issues/3183
   # Travis automatically installs the `requirements.txt` in "install" stage
