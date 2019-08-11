@@ -4,8 +4,149 @@ from coalib.results.Diff import diffs_dict
 def get_line(nl_file_dict, file_name, line): # might be unnecessary
 	return nl_file_dict[file_name][line]
 
+def is_delete_section_case_4(nl_sections, a_index_1, a_index_2):
+    """
+    Case 4: Some part of deletion is inside a nl_section and the remaining
+    part is outside.
+
+    a_index_1_bool tells us if the index of a1 is present inside a section
+    a_index_2_bool tells if the index of a2 is present in between two sections
+    or at the end of sections
+    """
+    a_index_1_bool = False
+    a_index_2_bool = False
+    a_index_1_section = None
+    a_index_2_section = None
+
+    for index, nl_section in enumerate(nl_sections):
+        # Check for a_index_1
+        if(nl_section.start.column < a_index_1 and 
+            nl_section.end.column > a_index_1 and not a_index_1_bool):
+            a_index_1_bool = True
+            a_index_1_section = index
+
+        # Check for a_index_2
+        elif(not a_index_2_bool and 
+            (a_index_2 >= nl_section.end.column and  
+                a_index_2 <= nl_sections[index+1].start.column) and 
+            a_index_2 >= nl_sections[-1].end.column):
+            a_index_2_bool = True
+            a_index_2_section = index+1
+
+        # Check if the section lie between a_index_1 and a_index_2. If it does
+        # mark that section as deleted.
+        elif(nl_section.start.column > a_index_1 and 
+                                    nl_section.end.column <= a_index_2):
+            nl_sections[index].delete_section = True
+
+    return ((a_index_1_bool and a_index_2_bool), 
+            a_index_1_section, 
+            a_index_2_section)
+
+def update_column_values(nl_sections,
+                         tag, 
+                         a_index_1, 
+                         a_index_2, 
+                         b_index_1, 
+                         b_index2):
+    """
+    Add/Delete the column numbers of the linted_start and linted_end SourceRange
+    objects.
+    a_index_1 --> The start of the column num to delete
+    a_index_2 --> The end of the column num to delete
+    """
+    # CASE 1: If the deletion happens before all the nl_sections of the line
+    # If the 
+    if all(nl_section.start.column > a_index_2 for nl_section in nl_sections):
+        delete_value = a_index_2 - a_index_1
+        for nl_section in nl_sections:
+            nl_section.linted_start.column -= delete_value
+            nl_section.linted_end.column -= delete_value
+
+    
+    for index, nl_section in enumerate(nl_sections):
+        delete_value = a_index_2 - a_index_1
+
+        # CASE 2:  Deletion is between two sections
+        if(nl_section.end.column < a_index_1 and 
+                nl_sections[index+1].start.column > a_index_2 and 
+                 len(nl_sections)>1):
+            for nl_section in nl_sections[index+1:]:
+                nl_section.linted_start.column -= delete_value
+                nl_section.linted_end.column -= delete_value
+            break    
+
+        # Case 3: The deletion lies in between the sections
+        # Decrease the end column of the selected section
+        # Decrease the start and end of all the corresponding nl_sections
+        elif(nl_section.start.column <= a_index_1 and 
+                        nl_section.end.column >= a_index_2):
+            nl_section.linted_end.column -= delete_value
+            for nl_section in nl_sections[index+1:]:
+                nl_section.linted_start.column -= delete_value
+                nl_section.linted_end.column -= delete_value
+            break
+
+        # CASE 4: Some part of deletion is inside a nl_section and the remaining
+        # part is outside.
+
+        # TODO: Make Graphical representation for better clarity
+        # In is_delete_section_case_4, we have already marked the section that
+        # are inside the a_index_1 and a_index_2 as deleted. We just have to 
+        # change the linted_start.column and linted_end.column values.
+        delete_case_4  = is_delete_section_case_4(nl_sections, a_index_1, a_index_2)
+
+        if (delete_case_4[0]):
+            a_index_1_section = delete_case_4[1]
+            a_index_2_section = delete_case_4[2]
+
+            # Decrease the end column of the section inside which a1 is present
+            nl_sections[a_index_1_section].linted_end.column = a_index_1
+
+            # Decrease the start and end of all the sections that comes after 
+            # a_index_2, if there are no sections after if then ignore it,
+            # because this case happens only when a_index_2 is at the end of 
+            # last nl_section
+
+            deletion_value = a_index_2 - a_index_1
+            if(any(nl_sections[a_index_2:])):
+
+                for nl_section in nl_sections[a_index_2:]:
+                    nl_section.linted_start.column -= deletion_value
+                    nl_section.linted_end.column -= deletion_value
+
+
+        
+
+
+
+
+
+
+
+
+
+    pass
+
 def update_changed_lines(changed_lines, nl_file_dict, nl_section):
 	"""Update the changed lines in the nl_section"""
+    for line in sorted(lines_list):
+        # Get all the nl_sections present on the line
+        all_nl_sections = [nl_section for nl_section in nl_sections 
+                            if nl_section.start.line == line ]
+    	orig_line = nl_file_dict[filename][line]
+    	patched_line = modified_diff[line]
+    	matcher = difflib.SequenceMatcher(None, orig_line, patched_line)
+    	for change_group in matcher.get_grouped_opcodes(1):
+            for (tag,
+                a_index_1,
+                a_index_2,
+                b_index_1,
+                b_index_2) in change_group:
+
+                if tag == 'delete':
+
+
 	pass
 
 def delete_and_append_lines(lines_list, nl_sections, update_value):
@@ -29,10 +170,10 @@ def delete_and_append_lines(lines_list, nl_sections, update_value):
 					nl_section.linted_end.line += update_value
 
 			# If the line is present inside a section. First update the 
-			# linted_end of the line. Then update the linted_start and 
+			# linted_end of the section. Then update the linted_start and 
 			# linted_end of all the nl_sections below it
-			elif (nl_section.start.line < line_to_update and 
-										nl_section.end.line > line_to_update):
+			elif (nl_section.start.line <= line_to_update and 
+										nl_section.end.line >= line_to_update):
 				nl_section.linted_end.line += update_value
 				for nl_section in nl_sections[index+1:]:
 					nl_section.linted_start.line += update_value
@@ -75,8 +216,8 @@ def update_nl_section(result, nl_file_dict, nl_sections):
 
     # Check if it is necessary to store the value into nl_sections. Or can we
     # only call the function directly.
-    nl_sections = delete_and_append_lines(deleted_lines, nl_sections, 1)
-    nl_sections = delete_and_append_lines(added_lines, nl_sections, -1)
+    nl_sections = delete_and_append_lines(deleted_lines, nl_sections, -1)
+    nl_sections = delete_and_append_lines(added_lines, nl_sections, 1)
     nl_sections = update_changed_lines(changed_lines, nl_file_dict, nl_sections)  
 	pass
 
