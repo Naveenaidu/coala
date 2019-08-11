@@ -4,14 +4,34 @@ from coalib.results.Diff import diffs_dict
 def get_line(nl_file_dict, file_name, line): # might be unnecessary
 	return nl_file_dict[file_name][line]
 
+def decrease_nl_section_columns(index, nl_sections, deletion_value):
+    """
+    Decreases the column number of linted_start and linted_end off all the 
+    nl_section from the index to the last element in nl_sections. 
+    """
+    if(any(nl_sections[a_index_2:])):
+
+                for nl_section in nl_sections[a_index_2:]:
+                    nl_section.linted_start.column -= deletion_value
+                    nl_section.linted_end.column -= deletion_value
+    return nl_sections
+
 def is_delete_section_case_4(nl_sections, a_index_1, a_index_2):
     """
     Case 4: Some part of deletion is inside a nl_section and the remaining
     part is outside.
 
-    a_index_1_bool tells us if the index of a1 is present inside a section
+    a_index_1 is inside a nl_section and a_index_2 is either in between two
+    nl_sections or at the very end
+
+    a_index_1_bool tells us if the index of a1 is present inside a section.
+    Inside of the section includes the start and the end of the section.
+
     a_index_2_bool tells if the index of a2 is present in between two sections
     or at the end of sections
+
+    a_index_1_section --> The section in which a_index_1 is present
+    a_index_2_section --> The next closest section to a_index_2
     """
     a_index_1_bool = False
     a_index_2_bool = False
@@ -20,8 +40,8 @@ def is_delete_section_case_4(nl_sections, a_index_1, a_index_2):
 
     for index, nl_section in enumerate(nl_sections):
         # Check for a_index_1
-        if(nl_section.start.column < a_index_1 and 
-            nl_section.end.column > a_index_1 and not a_index_1_bool):
+        if(nl_section.start.column <= a_index_1 and 
+            nl_section.end.column >= a_index_1 and not a_index_1_bool):
             a_index_1_bool = True
             a_index_1_section = index
 
@@ -35,13 +55,114 @@ def is_delete_section_case_4(nl_sections, a_index_1, a_index_2):
 
         # Check if the section lie between a_index_1 and a_index_2. If it does
         # mark that section as deleted.
-        elif(nl_section.start.column > a_index_1 and 
+        elif(nl_section.start.column >= a_index_1 and 
                                     nl_section.end.column <= a_index_2):
             nl_sections[index].delete_section = True
 
     return ((a_index_1_bool and a_index_2_bool), 
             a_index_1_section, 
             a_index_2_section)
+
+def is_delete_section_case_5(nl_sections, a_index_1, a_index_2):
+    """
+    Case 5: Some part of deletion is inside a nl_section and the remaining
+    part is outside.
+
+    a_index_1 is inside a nl_section and a_index_2 is either in between two
+    nl_sections or at the very end
+
+    a_index_1_bool tells us if the index of a1 is present inside a section
+    a_index_2_bool tells if the index of a2 is present in between two sections
+    or at the end of sections.Inside of the section includes the start and the 
+    end of the section.
+
+    a_index_1_section --> The section just before a_index_1
+    a_index_2_section --> The section in which a_index_2 is present
+    """
+    a_index_1_bool = False
+    a_index_2_bool = False
+    a_index_1_section = None
+    a_index_2_section = None
+
+    for index, nl_section in enumerate(nl_sections):
+        # Check for a_index_2
+        if((nl_section.start.column <= a_index_2 and 
+            nl_section.end.column >= a_index_2) and not a_index_2_bool):
+            a_index_2_bool = True
+            a_index_2_section = index
+
+        # Check for a_index_1
+        elif(not a_index_1_bool and 
+            (a_index_1 >= nl_section.end.column and  
+                a_index_1 <= nl_sections[index+1].start.column) and 
+            a_index_1 <= nl_sections[0].end.column):
+            a_index_1_bool = True
+            a_index_1_section = index - 1
+
+        # Check if the section lie between a_index_1 and a_index_2. If it does
+        # mark that section as deleted.
+        elif(nl_section.start.column >= a_index_1 and 
+                                    nl_section.end.column <= a_index_2):
+            nl_sections[index].delete_section = True
+
+    return ((a_index_1_bool and a_index_2_bool), 
+            a_index_1_section, 
+            a_index_2_section)
+def is_delete_section_case_6(nl_sections, a_index_1, a_index_2):
+    """
+    CASE 6: a_index_1 and a_index_2 both are inside nl_sections.
+
+    a_index_1_bool tells if the index of a1 is present in between two sections
+    or at the end of sections.Inside of the section includes the start and the 
+    end of the section.
+    a_index_2_bool tells if the index of a2 is present in between two sections
+    or at the end of sections.Inside of the section includes the start and the 
+    end of the section.
+
+    a_index_1_section --> The section in which a_index_1 is present
+    a_index_2_section --> The section in which a_index_2 is present
+    """
+    a_index_1_bool = False
+    a_index_2_bool = False
+    a_index_1_section = None
+    a_index_2_section = None
+
+    for index, nl_section in enumerate(nl_sections):
+
+        # Check for a_index_1
+        if((nl_section.start.column <= a_index_1 and 
+            nl_section.end.column >= a_index_1) and not a_index_1_bool):
+            a_index_1_bool = True
+            a_index_1_section = index
+
+        # Check for a_index_2
+        elif((nl_section.start.column <= a_index_2 and 
+            nl_section.end.column >= a_index_2 )and not a_index_2_bool):
+            a_index_2_bool = True
+            a_index_2_section = index
+
+        elif(nl_section.start.column >= a_index_1 and 
+                                    nl_section.end.column <= a_index_2):
+            nl_sections[index].delete_section = True
+
+    return ((a_index_1_bool and a_index_2_bool), 
+            a_index_1_section, 
+            a_index_2_section)
+
+def is_delete_section_case_7(nl_sections, a_index_1, a_index_2):
+    """
+    CASE 7: a_index_1 and a_index_2 are outside the nl_sections.
+    """
+    a_index_1_bool = False
+    a_index_2_bool = False
+    a_index_1_section = None
+    a_index_2_section = None
+
+    for index, nl_section in enumerate(nl_sections):
+        if(nl_sections[index].start.column <= a_index_1 and 
+            nl_sections[index+1].end.column >= a_index_1 and not a_index_1_bool):
+            # FIX THE LOOOP
+
 
 def update_column_values(nl_sections,
                          tag, 
@@ -90,6 +211,9 @@ def update_column_values(nl_sections,
         # CASE 4: Some part of deletion is inside a nl_section and the remaining
         # part is outside.
 
+        # a_index_1 is inside a nl_section and a_index_2 is either in between 
+        # two nl_sections or at the very end
+
         # TODO: Make Graphical representation for better clarity
         # In is_delete_section_case_4, we have already marked the section that
         # are inside the a_index_1 and a_index_2 as deleted. We just have to 
@@ -107,18 +231,54 @@ def update_column_values(nl_sections,
             # a_index_2, if there are no sections after if then ignore it,
             # because this case happens only when a_index_2 is at the end of 
             # last nl_section
-
             deletion_value = a_index_2 - a_index_1
-            if(any(nl_sections[a_index_2:])):
-
-                for nl_section in nl_sections[a_index_2:]:
-                    nl_section.linted_start.column -= deletion_value
-                    nl_section.linted_end.column -= deletion_value
+            decrease_nl_section_columns(a_index_2, nl_sections, deletion_value)
+            
 
 
-        
+        # CASE 5: Some part of deletion is inside a nl_section and the remaining
+        # part is outside. 
 
+        # a_index_1 is outside is either in between  two nl_sections or at the 
+        # very beginning of the nl_section and a_index_2 is inside a nl_section
+        delete_case_5 = is_delete_section_case_5(nl_sections, a_index_1, a_index_2)
 
+        if(delete_case_5[0]):
+            a_index_1_section = delete_case_5[1]
+            a_index_2_section = delete_case_5[2]
+
+            # Increase the linted_start of the section where a_index_2 is 
+            # present.
+            nl_sections[a_index_2_section].linted_start.column = a_index_2
+
+            # Decrease all the nl_sections including the section where 
+            # a_index_2 is present by the deletion_value. All the sections
+            # before the a_index_1 remains unaffected.
+            deletion_value = a_index_2 - a_index_1
+            decrease_nl_section_columns(a_index_2, nl_sections, deletion_value)
+
+        # CASE 6: a_index_1 and a_index_2 both are inside nl_sections
+        delete_case_6 = is_delete_section_case_6(nl_sections, a_index_1, a_index_2)
+
+        if(delete_case_6[0]):
+            a_index_1_section = delete_case_6[1]
+            a_index_2_section = delete_case_6[2]
+
+            # Decrease the linted_end of the section in which a_index_1 is 
+            # present.
+            nl_sections[a_index_1_section].linted_end.column = a_index_1
+
+            # Increase the linted_start of the section in which a_index_2 is 
+            # present.
+            nl_sections[a_index_2_section].linted_start.column = a_index_2
+
+            # Decrease all the nl_sections including the section where 
+            # a_index_2 is present by the deletion_value. All the sections
+            # before the a_index_1 remains unaffected
+            deletion_value = a_index_2 - a_index_1
+            decrease_nl_section_columns(a_index_2, nl_sections, deletion_value)
+
+        # CASE 7: a_index_1 and a_index_2 are outside the nl_sections
 
 
 
@@ -221,5 +381,4 @@ def update_nl_section(result, nl_file_dict, nl_sections):
     nl_sections = update_changed_lines(changed_lines, nl_file_dict, nl_sections)  
 	pass
 
-if __name__ == '__main__':
 	
