@@ -41,6 +41,7 @@ class NlSection(TextRange):
         TextRange.__init__(self, start, end)
         self.index = index
         self.language = language
+        self.delete_section = False
 
         """
         :linted_start: The start of the section in the linted file.Initially it
