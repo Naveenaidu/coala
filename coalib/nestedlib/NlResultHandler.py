@@ -7,7 +7,7 @@ def get_line(nl_file_dict, file_name, line): # might be unnecessary
 def decrease_nl_section_columns(section_index, nl_sections, deletion_value):
     """
     Decreases the column number of linted_start and linted_end off all the 
-    nl_section from the index to the last element in nl_sections. 
+    nl_section from the section_index to the last element in nl_sections. 
     """
     if(any(nl_sections[section_index:])):
 
@@ -15,6 +15,16 @@ def decrease_nl_section_columns(section_index, nl_sections, deletion_value):
                     nl_section.linted_start.column -= deletion_value
                     nl_section.linted_end.column -= deletion_value
     return nl_sections
+
+def increase_nl_section_columns(section_index, nl_sections, insertion_value):
+    """
+    Increases the column number of linted_start and linted_end off all the 
+    nl_section from the section_index to the last element in nl_sections.
+    """
+    if any(nl_sections[section_index:]):
+        for nl_section in nl_sections[section_index+1:]:
+            nl_section.linted_start.column += insertion_value
+            nl_section.linted_end.column += insertion_value
 
 def is_delete_section_case_4(nl_sections, a_index_1, a_index_2):
     """
@@ -195,8 +205,8 @@ def update_delted_column_changed_line(nl_sections,
     """
     # CASE 1: If the deletion happens before all the nl_sections of the line
     # TODO: CHECK IF THIS IS COVERED BY OTHER CASES
-    if all(nl_section.start.column > a_index_2 for nl_section in nl_sections):
-        delete_value = a_index_2 - a_index_1
+    if all(a_index_2 < nl_section.start.column  for nl_section in nl_sections):
+        deletion_value = a_index_2 - a_index_1
         decrease_nl_section_columns(0, nl_sections, deletion_value)
 
     
@@ -208,7 +218,6 @@ def update_delted_column_changed_line(nl_sections,
         if(nl_section.end.column < a_index_1 and 
                 nl_sections[section_index+1].start.column > a_index_2 and 
                  len(nl_sections)>1):
-            delete_value = a_index_2 - a_index_1
             decrease_nl_section_columns(section_index+1, nl_sections, deletion_value)
   
 
@@ -218,7 +227,6 @@ def update_delted_column_changed_line(nl_sections,
         elif(nl_section.start.column <= a_index_1 and 
                         nl_section.end.column >= a_index_2):
             nl_section.linted_end.column -= delete_value
-            delete_value = a_index_2 - a_index_1
             decrease_nl_section_columns(section_index+1, nl_sections, deletion_value)
 
         # CASE 4: Some part of deletion is inside a nl_section and the remaining
@@ -232,7 +240,6 @@ def update_delted_column_changed_line(nl_sections,
         # are inside the a_index_1 and a_index_2 as deleted. We just have to 
         # change the linted_start.column and linted_end.column values.
         delete_case_4  = is_delete_section_case_4(nl_sections, a_index_1, a_index_2)
-
         if (delete_case_4[0]):
             a_index_1_section = delete_case_4[1]
             a_index_2_section = delete_case_4[2]
@@ -244,18 +251,13 @@ def update_delted_column_changed_line(nl_sections,
             # a_index_2, if there are no sections after if then ignore it,
             # because this case happens only when a_index_2 is at the end of 
             # last nl_section
-            deletion_value = a_index_2 - a_index_1
             decrease_nl_section_columns(a_index_2_section, nl_sections, deletion_value)
             
-
-
         # CASE 5: Some part of deletion is inside a nl_section and the remaining
         # part is outside. 
-
         # a_index_1 is outside is either in between  two nl_sections or at the 
         # very beginning of the nl_section and a_index_2 is inside a nl_section
         delete_case_5 = is_delete_section_case_5(nl_sections, a_index_1, a_index_2)
-
         if(delete_case_5[0]):
             a_index_1_section = delete_case_5[1]
             a_index_2_section = delete_case_5[2]
@@ -267,12 +269,10 @@ def update_delted_column_changed_line(nl_sections,
             # Decrease all the nl_sections including the section where 
             # a_index_2 is present by the deletion_value. All the sections
             # before the a_index_1 remains unaffected.
-            deletion_value = a_index_2 - a_index_1
             decrease_nl_section_columns(a_index_2_section, nl_sections, deletion_value)
 
         # CASE 6: a_index_1 and a_index_2 both are inside nl_sections
         delete_case_6 = is_delete_section_case_6(nl_sections, a_index_1, a_index_2)
-
         if(delete_case_6[0]):
             a_index_1_section = delete_case_6[1]
             a_index_2_section = delete_case_6[2]
@@ -288,15 +288,62 @@ def update_delted_column_changed_line(nl_sections,
             # Decrease all the nl_sections including the section where 
             # a_index_2 is present by the deletion_value. All the sections
             # before the a_index_1 remains unaffected
-            deletion_value = a_index_2 - a_index_1
             decrease_nl_section_columns(a_index_2_section, nl_sections, deletion_value)
 
         # CASE 7: a_index_1 and a_index_2 are outside the nl_sections
         delete_case_7 = is_delete_section_case_7(nl_sections, a_index_1, a_index_2)
-
         if(delete_case7[0]):
-            deletion_value = a_index_2 - a_index_1
             decrease_nl_section_columns(a_index_2_section, nl_sections, deletion_value)
+
+def update_inserted_column_changed_line(nl_sections,
+                                        tag,
+                                        a_index_1,
+                                        a_index_2,
+                                        b_index_1,
+                                        b_index_2):
+    """
+    Update the column of the linted_end and linted_start of the nl_sections when
+    a patch is inserted in the line.
+
+    a_index_1 --> Column before which the insertion needs to happen.
+    For eg: If a_index_1 is 2, it means that the insertion is happening before
+    the column 2 of the original line.
+
+    Note that for `insert`, a_index_1 == a_index_2 
+    """
+
+    for section_index, nl_section in nl_sections:
+
+        insertion_value = b_index2 - b_index_1
+
+        # CASE 1: Insertion is happening inside a nl_section. 
+        # Inside a section include the begging and end column of the section
+        if(nl_section.start.column <= a_index_1 and 
+                                nl_section.end.column >= a_index_1):
+
+            # Increase the linted_end of that section and increase the 
+            # linted_start and linted_end of all the following sections.
+            nl_section.linted_end.column += insertion_value
+            increase_nl_section_columns(section_index+1, nl_sections, insertion_value)
+
+        # CASE 2: If the insertion is in between two sections
+        elif( a_index_1 > nl_section.end.column and 
+                    a_index_1 < nl_sections[index+1].start.column ):
+
+            # Increase the end of the section that is right before the a_index_1
+            # so as to include that into it's section.
+            # Increase the linted_start and linted_end of all the other sections
+            # that come after the a_index_1
+            nl_section.linted_end.column = b_index_2
+            increase_nl_section_columns(section_index+1, nl_sections, insertion_value)
+
+        # CASE 3: The insertion is happening ahead of all the nl_sections
+        elif( a_index_1 < nl_sections[0].start.column):
+
+            # Decrease the start of the 1st nl_section to include the inserted
+            # elements.
+            nl_sections[0].linted_start.column -= insertion_value
+            increase_nl_section_columns(1, nl_sections, insertion_value)
 
 
 def update_changed_lines(changed_lines, nl_file_dict, nl_section):
@@ -317,13 +364,20 @@ def update_changed_lines(changed_lines, nl_file_dict, nl_section):
 
                 if tag == 'delete':
                     update_delted_column_changed_line(nl_sections,
-                                         tag, 
-                                         a_index_1, 
-                                         a_index_2, 
-                                         b_index_1, 
-                                         b_index2)
+                                                      tag, 
+                                                      a_index_1, 
+                                                      a_index_2, 
+                                                      b_index_1, 
+                                                      b_index_2)
 
                 if tag == 'insert':
+                    update_inserted_column_changed_line(nl_sections,
+                                                        tag,
+                                                        a_index_1,
+                                                        a_index_2,
+                                                        b_index_1,
+                                                        b_index_2)
+                    
 
 
 
@@ -342,7 +396,7 @@ def delete_and_append_lines(lines_list, nl_sections, update_value):
 	for line_to_update in sorted(lines_list):
 		for index, nl_section in enumerate(nl_sections):
 			# If the line to delete/add is above the current nl_section
-			# then add/subtract the one line from the start and end of all the
+			# then add/subtract one line from the start and end of all the
 			# nl_sections that are below the line to be added/deleted.
 			if nl_section.start.line > line_to_update: 
 				for nl_section in nl_sections[index:]:
