@@ -2,7 +2,7 @@ import difflib
 from coalib.results.Diff import diffs_dict
 
 def get_line(nl_file_dict, file_name, line): # might be unnecessary
-	return nl_file_dict[file_name][line]
+    return nl_file_dict[file_name][line]
 
 def decrease_nl_section_columns(section_index, nl_sections, deletion_value):
     """
@@ -312,7 +312,7 @@ def update_inserted_column_changed_line(nl_sections,
     Note that for `insert`, a_index_1 == a_index_2 
     """
 
-    for section_index, nl_section in nl_sections:
+    for section_index, nl_section in enumerate(nl_sections):
 
         insertion_value = b_index2 - b_index_1
 
@@ -328,7 +328,7 @@ def update_inserted_column_changed_line(nl_sections,
 
         # CASE 2: If the insertion is in between two sections
         elif( a_index_1 > nl_section.end.column and 
-                    a_index_1 < nl_sections[index+1].start.column ):
+                    a_index_2 < nl_sections[index+1].start.column ):
 
             # Increase the end of the section that is right before the a_index_1
             # so as to include that into it's section.
@@ -345,17 +345,56 @@ def update_inserted_column_changed_line(nl_sections,
             nl_sections[0].linted_start.column -= insertion_value
             increase_nl_section_columns(1, nl_sections, insertion_value)
 
+def update_replaced_column_changed_line(nl_sections,
+                                        tag,
+                                        a_index_1,
+                                        a_index_2,
+                                        b_index_1,
+                                        b_index_2):
+
+    """
+    Update the column of the linted_end and linted_start of the nl_sections when
+    some text is replaced with another.
+    """
+    replaced_value = (b_index_2 - b_index_1) - (a_index_2 - a_index_1)
+    for section_index, nl_section in enumerate(nl_sections):
+
+        # CASE 1: If the characters are being replaced and no other new char
+        # is added then do nothing.
+        # Else increase the linted_end of that section and increase the 
+        # linted_start and linted_end of all other sections after it.
+        if(a_index_1 >= nl_section.start.column 
+                                and a_index_1 <= nl_section.end.column):
+            if ( replaced_value == 0):
+                continue
+
+            else:
+                nl_section.linted_end.colmun += replaced_value
+                increase_nl_section_columns(section_index+1, nl_sections, replaced_value)
+
+        # CASE 2: replacing takes place outside the nl_sections.
+        # If this replacing does not insert any new characters, then do not
+        # update the linted_start and linted_end of the other nl_sections, else
+        # update them
+
+        elif(a_index_1 > nl_section.end.column and 
+                        a_index_2 < nl_sections[section_index+1].start.column):
+
+            nl_section.linted_end.column = b_index_2
+            if(replaced_value > 0):
+                increase_nl_section_columns(section_index+1, nl_sections, replaced_value)
+
 
 def update_changed_lines(changed_lines, nl_file_dict, nl_section):
-	"""Update the changed lines in the nl_section"""
+    """Update the changed lines in the nl_section"""
     for line in sorted(lines_list):
         # Get all the nl_sections present on the line
         all_nl_sections = [nl_section for nl_section in nl_sections 
                             if nl_section.start.line == line ]
-    	orig_line = nl_file_dict[filename][line]
-    	patched_line = modified_diff[line]
-    	matcher = difflib.SequenceMatcher(None, orig_line, patched_line)
-    	for change_group in matcher.get_grouped_opcodes(1):
+        orig_line = nl_file_dict[filename][line]
+        patched_line = modified_diff[line]
+        matcher = difflib.SequenceMatcher(None, orig_line, patched_line)
+        for change_group in matcher.get_grouped_opcodes(1):
             for (tag,
                 a_index_1,
                 a_index_2,
@@ -370,80 +409,83 @@ def update_changed_lines(changed_lines, nl_file_dict, nl_section):
                                                       b_index_1, 
                                                       b_index_2)
 
-                if tag == 'insert':
+                elif tag == 'insert':
                     update_inserted_column_changed_line(nl_sections,
                                                         tag,
                                                         a_index_1,
                                                         a_index_2,
                                                         b_index_1,
                                                         b_index_2)
-                    
 
-
-
-	pass
+                elif tag == 'replace':
+                    update_replaced_column_changed_line(nl_sections,
+                                                        tag,
+                                                        a_index_1,
+                                                        a_index_2,
+                                                        b_index_1,
+                                                        b_index_2)
 
 def delete_and_append_lines(lines_list, nl_sections, update_value):
-	"""
-	Delete the deleted lines and Add the new lines.
-	update_value tells us what to do.
-	If the update_value is -1 it means the lines will be deleted
-	If the update_values is 1 it means the lines will be added
+    """
+    Delete the deleted lines and Add the new lines.
+    update_value tells us what to do.
+    If the update_value is -1 it means the lines will be deleted
+    If the update_values is 1 it means the lines will be added
 
-	A particular line can be deleted or added
-	"""
-	# TODO: Look for optimizations
-	for line_to_update in sorted(lines_list):
-		for index, nl_section in enumerate(nl_sections):
-			# If the line to delete/add is above the current nl_section
-			# then add/subtract one line from the start and end of all the
-			# nl_sections that are below the line to be added/deleted.
-			if nl_section.start.line > line_to_update: 
-				for nl_section in nl_sections[index:]:
-					nl_section.linted_start.line += update_value
-					nl_section.linted_end.line += update_value
+    A particular line can be deleted or added
+    """
+    # TODO: Look for optimizations
+    for line_to_update in sorted(lines_list):
+        for index, nl_section in enumerate(nl_sections):
+            # If the line to delete/add is above the current nl_section
+            # then add/subtract one line from the start and end of all the
+            # nl_sections that are below the line to be added/deleted.
+            if nl_section.start.line > line_to_update: 
+                for nl_section in nl_sections[index:]:
+                    nl_section.linted_start.line += update_value
+                    nl_section.linted_end.line += update_value
 
-			# If the line is present inside a section. First update the 
-			# linted_end of the section. Then update the linted_start and 
-			# linted_end of all the nl_sections below it
-			elif (nl_section.start.line <= line_to_update and 
-										nl_section.end.line >= line_to_update):
-				nl_section.linted_end.line += update_value
-				for nl_section in nl_sections[index+1:]:
-					nl_section.linted_start.line += update_value
-					nl_section.linted_end.line += update_value
+            # If the line is present inside a section. First update the 
+            # linted_end of the section. Then update the linted_start and 
+            # linted_end of all the nl_sections below it
+            elif (nl_section.start.line <= line_to_update and 
+                                        nl_section.end.line >= line_to_update):
+                nl_section.linted_end.line += update_value
+                for nl_section in nl_sections[index+1:]:
+                    nl_section.linted_start.line += update_value
+                    nl_section.linted_end.line += update_value
 
-	return nl_sections
+    return nl_sections
 
 
 
 def update_nl_section(result, nl_file_dict, nl_sections):
-	"""
-	:param nl_section: The nl_section of the language of which the file is made.
-	For eg: If the file being linted is a temp_jinja file then nl_sections
-	contains the nl_sections of jinja language. 
+    """
+    :param nl_section: The nl_section of the language of which the file is made.
+    For eg: If the file being linted is a temp_jinja file then nl_sections
+    contains the nl_sections of jinja language. 
 
-	Update the NlSection information based on the patches the user chooses to
-	apply.
+    Update the NlSection information based on the patches the user chooses to
+    apply.
 
-	Get the diff info from the `get_diff_info` from result.diff, use this info
-	to find what files are being `changed`, `deleted` and `added` when the 
-	patch is going to be applied.
+    Get the diff info from the `get_diff_info` from result.diff, use this info
+    to find what files are being `changed`, `deleted` and `added` when the 
+    patch is going to be applied.
 
-	Fetch those lines from the nl_file_dict, compare them with the patch
-	provided by bear. use difflib to compare. And then on the basis of the 
-	tags of the difflib, update the start and end of the NlSection.
+    Fetch those lines from the nl_file_dict, compare them with the patch
+    provided by bear. use difflib to compare. And then on the basis of the 
+    tags of the difflib, update the start and end of the NlSection.
 
-	Note: The reason we are updating the nl_section is because, it'll help in
-	extracting the nl_sections from the nl_section_map from each of the 
-	segregated file, when the patches are applied.
+    Note: The reason we are updating the nl_section is because, it'll help in
+    extracting the nl_sections from the nl_section_map from each of the 
+    segregated file, when the patches are applied.
 
-	The updated_nl_sections tells us the information about what part of text
-	to extract from the temp_file_dict. This information would be useful while
-	assembling.
-	"""
-	nl_sections.sort(key = lambda x: x.index)
-	diff_dict = result.diffs_dict()
+    The updated_nl_sections tells us the information about what part of text
+    to extract from the temp_file_dict. This information would be useful while
+    assembling.
+    """
+    nl_sections.sort(key = lambda x: x.index)
+    diff_dict = result.diffs_dict()
     diff = diff_dict[filename]
     modified_diff = diff.modified()
     changed_lines, deleted_lines, added_lines = diff.get_diff_info()
@@ -453,6 +495,6 @@ def update_nl_section(result, nl_file_dict, nl_sections):
     nl_sections = delete_and_append_lines(deleted_lines, nl_sections, -1)
     nl_sections = delete_and_append_lines(added_lines, nl_sections, 1)
     nl_sections = update_changed_lines(changed_lines, nl_file_dict, nl_sections)  
-	pass
+    pass
 
-	
+    
