@@ -207,6 +207,7 @@ def run_coala(console_printer=None,
                 apply_single=(apply_single
                               if apply_single is not None else
                               False))
+            print("\n***** SECTION RESULT *****\n", section_result, "\n")
             yielded, yielded_unfixed, results[section_name] = (
                 simplify_section_result(section_result))
 

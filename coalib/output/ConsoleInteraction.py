@@ -150,7 +150,8 @@ def acquire_actions_and_apply(console_printer,
                               result,
                               file_dict,
                               cli_actions=None,
-                              apply_single=False):
+                              apply_single=False,
+                              all_nl_sections=None):
     """
     Acquires applicable actions and applies them.
 
@@ -196,7 +197,8 @@ def acquire_actions_and_apply(console_printer,
             file_diff_dict,
             file_dict,
             applied_actions,
-            apply_single=apply_single
+            apply_single=apply_single,
+            all_nl_sections=all_nl_sections
         )
         if not continue_interaction:
             break
@@ -262,7 +264,8 @@ def print_result(console_printer,
                  result,
                  file_dict,
                  interactive=True,
-                 apply_single=False):
+                 apply_single=False,
+                 all_nl_sections=None):
     """
     Prints the result to console.
 
@@ -278,6 +281,7 @@ def print_result(console_printer,
     :param interactive:     Variable to check whether or not to
                             offer the user actions interactively.
     """
+    print('\n ALL_NL_SECTIONS ', all_nl_sections )
     no_color = not console_printer.print_colored
     if not isinstance(result, Result):
         logging.warning('One of the results can not be printed since it is '
@@ -315,18 +319,22 @@ def print_result(console_printer,
                 show_patch_action.apply_from_section(result,
                                                      file_dict,
                                                      file_diff_dict,
-                                                     section)
+                                                     section,
+                                                     all_nl_sections=all_nl_sections)
                 cli_actions = tuple(action for action in cli_actions
                                     if not isinstance(action, ShowPatchAction))
             else:
                 print_diffs_info(result.diffs, console_printer)
+
+
         acquire_actions_and_apply(console_printer,
                                   section,
                                   file_diff_dict,
                                   result,
                                   file_dict,
                                   cli_actions,
-                                  apply_single=apply_single)
+                                  apply_single=apply_single,
+                                  all_nl_sections=all_nl_sections)
 
 
 def print_diffs_info(diffs, printer):
@@ -486,7 +494,8 @@ def print_results(log_printer,
                   file_dict,
                   file_diff_dict,
                   console_printer,
-                  apply_single=False):
+                  apply_single=False,
+                  all_nl_sections=None):
     """
     Prints all the results in a section.
 
@@ -513,7 +522,8 @@ def print_results(log_printer,
                      file_diff_dict,
                      result,
                      file_dict,
-                     apply_single=apply_single)
+                     apply_single=apply_single,
+                     all_nl_sections=all_nl_sections)
 
 
 def print_affected_lines(console_printer, file_dict, sourcerange):
@@ -697,7 +707,8 @@ def try_to_apply_action(action_name,
                         result,
                         file_diff_dict,
                         file_dict,
-                        applied_actions):
+                        applied_actions,
+                        all_nl_sections=None):
     """
     Try to apply the given action.
 
@@ -724,7 +735,8 @@ def try_to_apply_action(action_name,
         chosen_action.apply_from_section(result,
                                          file_dict,
                                          file_diff_dict,
-                                         section)
+                                         section,
+                                         all_nl_sections=all_nl_sections)
         if not isinstance(chosen_action, DoNothingAction):
             console_printer.print(
                 format_lines(chosen_action.SUCCESS_MESSAGE, symbol='['),
@@ -750,7 +762,8 @@ def ask_for_action_and_apply(console_printer,
                              file_diff_dict,
                              file_dict,
                              applied_actions,
-                             apply_single=False):
+                             apply_single=False,
+                             all_nl_sections=None):
     """
     Asks the user for an action and applies it.
 
@@ -800,7 +813,8 @@ def ask_for_action_and_apply(console_printer,
                                     result,
                                     file_diff_dict,
                                     file_dict,
-                                    applied_actions)
+                                    applied_actions,
+                                    all_nl_sections=all_nl_sections)
         return False
     else:
         for action_choice, action_choice_name in zip(actions_desc,
@@ -821,7 +835,8 @@ def ask_for_action_and_apply(console_printer,
                                         result,
                                         file_diff_dict,
                                         file_dict,
-                                        applied_actions)
+                                        applied_actions,
+                                        all_nl_sections=all_nl_sections)
 
             if action_choice == 'Do (N)othing':
                 return False

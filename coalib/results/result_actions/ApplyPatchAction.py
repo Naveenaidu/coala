@@ -18,6 +18,7 @@ class ApplyPatchAction(ResultAction):
               result,
               original_file_dict,
               file_diff_dict,
+              nl_sections=None,
               no_orig: bool = False):
         """
         (A)pply patch

@@ -48,7 +48,8 @@ class ResultAction:
                            result,
                            original_file_dict: dict,
                            file_diff_dict: dict,
-                           section: Section):
+                           section: Section,
+                           all_nl_sections=None):
         """
         Applies this action to the given results with all additional options
         given as a section. The file dictionaries
@@ -66,8 +67,14 @@ class ResultAction:
                                    information.
         :return:                   The modified file_diff_dict.
         """
+        if(section.get('handle_nested')):
+          from coalib.nestedlib.NlFileHandler import get_nl_sections
+          file_lang = section.get('file_lang')
+          nl_sections = get_nl_sections(all_nl_sections, file_lang)
+
         params = self.get_metadata().create_params_from_section(section)
-        return self.apply(result, original_file_dict, file_diff_dict, **params)
+        return self.apply(result, original_file_dict, file_diff_dict,
+                          nl_sections=nl_sections, **params)
 
     @classmethod
     def get_metadata(cls):

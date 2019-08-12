@@ -31,7 +31,7 @@ from coalib.parsing.Globbing import fnmatch
 from coalib.io.FileProxy import FileDictGenerator
 from coalib.io.File import File
 
-from coalib.nestedlib.NlCore import get_parser
+from coalib.nestedlib.NlCore import get_parser, get_nl_sections_parser
 from coalib.nestedlib.NlFileHandler import get_nl_file_dict
 
 
@@ -213,7 +213,8 @@ def print_result(results,
                  file_diff_dict,
                  ignore_ranges,
                  console_printer,
-                 apply_single=False):
+                 apply_single=False,
+                 all_nl_sections=None):
     """
     Takes the results produced by each bear and gives them to the print_results
     method to present to the user.
@@ -256,7 +257,8 @@ def print_result(results,
                   file_dict,
                   file_diff_dict,
                   console_printer,
-                  apply_single)
+                  apply_single,
+                  all_nl_sections=all_nl_sections)
     return retval or len(results) > 0, patched_results
 
 
@@ -623,6 +625,16 @@ def process_queues(processes,
     result_files = set()
     ignore_ranges = list(yield_ignore_ranges(file_dict))
 
+    print("\n FILE_DICT \n", file_dict)
+    print("\n SECTION \n", section)
+    print("\n SECTION LANGUAGE \n", section.get('file_lang'))
+
+    # Get all the nl_sections generated from the parser
+    all_nl_sections=None
+    if section.get('handle_nested'):
+        all_nl_sections = get_nl_sections_parser(section)
+
+    #print('\nall_nl_sections\n', all_nl_sections)
     # One process is the logger thread (if not in debug mode)
     while local_processes > (1 if not (debug or debug_bears) else 0):
         try:
@@ -634,6 +646,26 @@ def process_queues(processes,
                 global_processes -= 1
             elif control_elem == CONTROL_ELEMENT.LOCAL:
                 assert local_processes != 0
+
+                #print("\n LOCAL RESULT DICT \n", local_result_dict[index])
+
+                for result in local_result_dict[index]:
+                  for filename in result.diffs:
+                    diff_dict = result.diffs_dict()
+                    diff = diff_dict[filename]
+                    changed_lines, deleted_lines, added_lines = diff.get_diff_info()
+                    print("\n CHANGED_LINES ", changed_lines)
+                    print("\n DELETED lINES ", deleted_lines)
+                    print("\n ADDED LINES   ", added_lines)
+                    #print("\n DIFF RANGE ", diff.range(filename))
+                    #print("\n ORIGINAL \n", diff.original)
+                    #print("\n RAW MODIFIED \n", diff._raw_modified())
+                    print("\n MODIFIED \n", diff.modified)
+                    print("\n UNIFIED DIFF\n", diff.unified_diff)
+                    print("\n AFFECTED CODE ", diff.affected_code(filename)[0].start.line)
+                    print("*"*80)
+
+
                 result_files.update(get_file_list(local_result_dict[index]))
                 retval, res = print_result(local_result_dict[index],
                                            file_dict,
@@ -644,9 +676,11 @@ def process_queues(processes,
                                            file_diff_dict,
                                            ignore_ranges,
                                            console_printer=console_printer,
-                                           apply_single=apply_single
+                                           apply_single=apply_single,
+                                           all_nl_sections=all_nl_sections,
                                            )
                 local_result_dict[index] = res
+                print("\n RES \n", res)
             else:
                 assert control_elem == CONTROL_ELEMENT.GLOBAL
                 global_result_buffer.append(index)
@@ -668,7 +702,8 @@ def process_queues(processes,
                                    file_diff_dict,
                                    ignore_ranges,
                                    console_printer=console_printer,
-                                   apply_single=apply_single)
+                                   apply_single=apply_single,
+                                   all_nl_sections=all_nl_section)
         global_result_dict[elem] = res
 
     # One process is the logger thread
@@ -687,7 +722,9 @@ def process_queues(processes,
                                            file_diff_dict,
                                            ignore_ranges,
                                            console_printer,
-                                           apply_single)
+                                           apply_single,
+                                           all_nl_sections=all_nl_sections
+                                           )
                 global_result_dict[index] = res
             else:
                 assert control_elem == CONTROL_ELEMENT.GLOBAL_FINISHED
@@ -830,6 +867,8 @@ def execute_section(section,
     for runner in processes:
         runner.start()
 
+    print("\nLOCAL RESULT\n", arg_dict['local_result_dict'], 
+          "\n GLOBAL RESULT\n", arg_dict['global_result_dict'])
     try:
         return (process_queues(processes,
                                arg_dict['control_queue'],

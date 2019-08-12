@@ -639,3 +639,23 @@ class Diff:
             return []
 
         return Diff._add_linebreaks(lines[:-1]) + [lines[-1]]
+
+    def get_diff_info(self):
+        """
+        Returns tuple containing line numbers of deleted,changed and added lines.
+        """
+        deleted_lines = []
+        added_lines = []
+        changed_lines = []
+
+        for line_nr in self._changes:
+            line_diff = self._changes[line_nr]
+
+            if line_diff.change:
+                changed_lines.append(line_nr)
+            elif line_diff.delete:
+                deleted_lines.append(line_nr)
+            if line_diff.add_after:
+                added_lines.append(line_nr)
+
+        return changed_lines, deleted_lines, added_lines

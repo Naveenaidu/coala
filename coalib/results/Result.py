@@ -336,3 +336,6 @@ class Result:
                               for file, diff in _dict['diffs'].items()}
         _dict['aspect'] = type(self.aspect).__qualname__
         return _dict
+
+    def diffs_dict(self):
+        return self.diffs

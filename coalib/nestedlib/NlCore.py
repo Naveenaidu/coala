@@ -3,13 +3,23 @@ from coalib.parsing.DefaultArgParser import default_arg_parser
 from coalib.nestedlib.NlCliParsing import parse_nl_cli
 from collections import OrderedDict
 from importlib import import_module
-
+from coalib.settings.Setting import glob_list, typed_list
 from coalib.parsing.DefaultArgParser import default_arg_parser
 import logging
 
 
 # The supported Parser for the language combination
 PARSER_LANG_COMB = [{'PyJinjaParser': {'python', 'jinja2'}}]
+
+def get_nl_sections_parser(section):
+    """
+    Get the Nested language section created by the parser
+    """
+    parser = get_parser(section.get('languages').value)
+    orig_file_path = glob_list(section.get('orig_file_name', ''))[0]
+    all_nl_sections = parser.parse(orig_file_path)
+
+    return all_nl_sections
 
 
 def get_parser(lang_comb):
