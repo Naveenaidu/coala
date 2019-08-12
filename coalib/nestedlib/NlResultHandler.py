@@ -1,9 +1,6 @@
 import difflib
 from coalib.results.Diff import diffs_dict
 
-def get_line(nl_file_dict, file_name, line): # might be unnecessary
-    return nl_file_dict[file_name][line]
-
 def decrease_nl_section_columns(section_index, nl_sections, deletion_value):
     """
     Decreases the column number of linted_start and linted_end off all the 
@@ -202,25 +199,26 @@ def update_delted_column_changed_line(nl_sections,
     objects.
     a_index_1 --> The start of the column num to delete
     a_index_2 --> The end of the column num to delete
+
+    Remember, the nl_sections are sorted by their index.
     """
+
     # CASE 1: If the deletion happens before all the nl_sections of the line
     # TODO: CHECK IF THIS IS COVERED BY OTHER CASES
-    if all(a_index_2 < nl_section.start.column  for nl_section in nl_sections):
+    if (a_index_2 < nl_sections[0].start.column):
         deletion_value = a_index_2 - a_index_1
         decrease_nl_section_columns(0, nl_sections, deletion_value)
 
-    
     for section_index, nl_section in enumerate(nl_sections):
         delete_value = a_index_2 - a_index_1
 
         # CASE 2:  Deletion is between two sections
         # TODO: CHECK IF THIS IS COVERED BY OTHER CASES
         if(nl_section.end.column < a_index_1 and 
-                nl_sections[section_index+1].start.column > a_index_2 and 
+                 a_index_2 < nl_sections[section_index+1].start.column and 
                  len(nl_sections)>1):
             decrease_nl_section_columns(section_index+1, nl_sections, deletion_value)
   
-
         # Case 3: The deletion lies in between the sections
         # Decrease the end column of the selected section
         # Decrease the start and end of all the corresponding nl_sections
@@ -425,7 +423,7 @@ def update_changed_lines(changed_lines, nl_file_dict, nl_section):
                                                         b_index_1,
                                                         b_index_2)
 
-def delete_and_append_lines(lines_list, nl_sections, update_value):
+def delete_or_append_lines(lines_list, nl_sections, update_value):
     """
     Delete the deleted lines and Add the new lines.
     update_value tells us what to do.
@@ -459,7 +457,7 @@ def delete_and_append_lines(lines_list, nl_sections, update_value):
 
 
 
-def update_nl_section(result, nl_file_dict, nl_sections):
+def update_nl_section(result, nl_file_dict, nl_sections, filename):
     """
     :param nl_section: The nl_section of the language of which the file is made.
     For eg: If the file being linted is a temp_jinja file then nl_sections
@@ -492,9 +490,8 @@ def update_nl_section(result, nl_file_dict, nl_sections):
 
     # Check if it is necessary to store the value into nl_sections. Or can we
     # only call the function directly.
-    nl_sections = delete_and_append_lines(deleted_lines, nl_sections, -1)
-    nl_sections = delete_and_append_lines(added_lines, nl_sections, 1)
+    nl_sections = delete_or_append_lines(deleted_lines, nl_sections, -1)
+    nl_sections = delete_or_append_lines(added_lines, nl_sections, 1)
     nl_sections = update_changed_lines(changed_lines, nl_file_dict, nl_sections)  
-    pass
 
     
