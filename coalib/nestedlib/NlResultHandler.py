@@ -1,5 +1,5 @@
 import difflib
-from coalib.results.Diff import diffs_dict
+#from coalib.results.Result import diffs_dict
 
 def decrease_nl_section_columns(section_index, nl_sections, deletion_value):
     """
@@ -206,17 +206,19 @@ def update_delted_column_changed_line(nl_sections,
     # CASE 1: If the deletion happens before all the nl_sections of the line
     # TODO: CHECK IF THIS IS COVERED BY OTHER CASES
     if (a_index_2 < nl_sections[0].start.column):
+        print("\nINSIDE DELE COL CHANGED LINE CASE 1\n")
         deletion_value = a_index_2 - a_index_1
         decrease_nl_section_columns(0, nl_sections, deletion_value)
 
     for section_index, nl_section in enumerate(nl_sections):
-        delete_value = a_index_2 - a_index_1
+        deletion_value = a_index_2 - a_index_1
 
         # CASE 2:  Deletion is between two sections
         # TODO: CHECK IF THIS IS COVERED BY OTHER CASES
         if(nl_section.end.column < a_index_1 and 
                  a_index_2 < nl_sections[section_index+1].start.column and 
                  len(nl_sections)>1):
+            print("\nINSIDE DELE COL CHANGED LINE CASE 2\n")
             decrease_nl_section_columns(section_index+1, nl_sections, deletion_value)
   
         # Case 3: The deletion lies in between the sections
@@ -224,7 +226,8 @@ def update_delted_column_changed_line(nl_sections,
         # Decrease the start and end of all the corresponding nl_sections
         elif(nl_section.start.column <= a_index_1 and 
                         nl_section.end.column >= a_index_2):
-            nl_section.linted_end.column -= delete_value
+            print("\nINSIDE DELE COL CHANGED LINE CASE 3\n")
+            nl_section.linted_end.column -= deletion_value
             decrease_nl_section_columns(section_index+1, nl_sections, deletion_value)
 
         # CASE 4: Some part of deletion is inside a nl_section and the remaining
@@ -239,6 +242,7 @@ def update_delted_column_changed_line(nl_sections,
         # change the linted_start.column and linted_end.column values.
         delete_case_4  = is_delete_section_case_4(nl_sections, a_index_1, a_index_2)
         if (delete_case_4[0]):
+            print("\nINSIDE DELE COL CHANGED LINE CASE 4\n")
             a_index_1_section = delete_case_4[1]
             a_index_2_section = delete_case_4[2]
 
@@ -257,6 +261,7 @@ def update_delted_column_changed_line(nl_sections,
         # very beginning of the nl_section and a_index_2 is inside a nl_section
         delete_case_5 = is_delete_section_case_5(nl_sections, a_index_1, a_index_2)
         if(delete_case_5[0]):
+            print("\nINSIDE DELE COL CHANGED LINE CASE 5\n")
             a_index_1_section = delete_case_5[1]
             a_index_2_section = delete_case_5[2]
 
@@ -272,6 +277,7 @@ def update_delted_column_changed_line(nl_sections,
         # CASE 6: a_index_1 and a_index_2 both are inside nl_sections
         delete_case_6 = is_delete_section_case_6(nl_sections, a_index_1, a_index_2)
         if(delete_case_6[0]):
+            print("\nINSIDE DELE COL CHANGED LINE CASE 6\n")
             a_index_1_section = delete_case_6[1]
             a_index_2_section = delete_case_6[2]
 
@@ -291,6 +297,7 @@ def update_delted_column_changed_line(nl_sections,
         # CASE 7: a_index_1 and a_index_2 are outside the nl_sections
         delete_case_7 = is_delete_section_case_7(nl_sections, a_index_1, a_index_2)
         if(delete_case7[0]):
+            print("\nINSIDE DELE COL CHANGED LINE CASE 7\n")
             decrease_nl_section_columns(a_index_2_section, nl_sections, deletion_value)
 
 def update_inserted_column_changed_line(nl_sections,
@@ -312,13 +319,13 @@ def update_inserted_column_changed_line(nl_sections,
 
     for section_index, nl_section in enumerate(nl_sections):
 
-        insertion_value = b_index2 - b_index_1
+        insertion_value = b_index_2 - b_index_1
 
         # CASE 1: Insertion is happening inside a nl_section. 
         # Inside a section include the begging and end column of the section
         if(nl_section.start.column <= a_index_1 and 
                                 nl_section.end.column >= a_index_1):
-
+            print("\nINSIDE INSERTION COL CHANGED LINE CASE 1\n")
             # Increase the linted_end of that section and increase the 
             # linted_start and linted_end of all the following sections.
             nl_section.linted_end.column += insertion_value
@@ -327,7 +334,7 @@ def update_inserted_column_changed_line(nl_sections,
         # CASE 2: If the insertion is in between two sections
         elif( a_index_1 > nl_section.end.column and 
                     a_index_2 < nl_sections[index+1].start.column ):
-
+            print("\nINSIDE INSERTION COL CHANGED LINE CASE 2\n")
             # Increase the end of the section that is right before the a_index_1
             # so as to include that into it's section.
             # Increase the linted_start and linted_end of all the other sections
@@ -337,7 +344,7 @@ def update_inserted_column_changed_line(nl_sections,
 
         # CASE 3: The insertion is happening ahead of all the nl_sections
         elif( a_index_1 < nl_sections[0].start.column):
-
+            print("\nINSIDE INSERTION COL CHANGED LINE CASE 3\n")
             # Decrease the start of the 1st nl_section to include the inserted
             # elements.
             nl_sections[0].linted_start.column -= insertion_value
@@ -363,6 +370,7 @@ def update_replaced_column_changed_line(nl_sections,
         # linted_start and linted_end of all other sections after it.
         if(a_index_1 >= nl_section.start.column 
                                 and a_index_1 <= nl_section.end.column):
+            print("\nINSIDE REPLACED COL CHANGED LINE CASE 1\n")
             if ( replaced_value == 0):
                 continue
 
@@ -377,20 +385,25 @@ def update_replaced_column_changed_line(nl_sections,
 
         elif(a_index_1 > nl_section.end.column and 
                         a_index_2 < nl_sections[section_index+1].start.column):
-
+            print("\nINSIDE REPLACED COL CHANGED LINE CASE 2\n")
             nl_section.linted_end.column = b_index_2
             if(replaced_value > 0):
                 increase_nl_section_columns(section_index+1, nl_sections, replaced_value)
 
 
-def update_changed_lines(changed_lines, nl_file_dict, nl_section):
+def update_changed_lines(changed_lines, nl_file_dict, nl_sections, filename, modified_diff=None):
     """Update the changed lines in the nl_section"""
-    for line in sorted(lines_list):
+    for line in sorted(changed_lines):
         # Get all the nl_sections present on the line
         all_nl_sections = [nl_section for nl_section in nl_sections 
                             if nl_section.start.line == line ]
-        orig_line = nl_file_dict[filename][line]
-        patched_line = modified_diff[line]
+        print("\n NlResultHandler nl_file_dict \n", nl_file_dict)
+        print("\n NlResultHandler modified_diff \n", modified_diff)
+        orig_line = nl_file_dict[filename][line-1]
+        patched_line = modified_diff[line-1]
+
+        print("\nORIG LINE: ", orig_line)
+        print("\nPATCHED LINE: ", patched_line)
         matcher = difflib.SequenceMatcher(None, orig_line, patched_line)
         for change_group in matcher.get_grouped_opcodes(1):
             for (tag,
@@ -399,6 +412,12 @@ def update_changed_lines(changed_lines, nl_file_dict, nl_section):
                 b_index_1,
                 b_index_2) in change_group:
 
+                # The column when showing the difference starts with 0,
+                # The column in nl_Sections starts with 1
+                a_index_1 += 1
+                a_index_2 += 1
+                b_index_1 += 1
+                b_index_2 += 1
                 if tag == 'delete':
                     update_delted_column_changed_line(nl_sections,
                                                       tag, 
@@ -433,6 +452,7 @@ def delete_or_append_lines(lines_list, nl_sections, update_value):
     A particular line can be deleted or added
     """
     # TODO: Look for optimizations
+    print("\nINSIDE DELETE OR APPEND LINES\n")
     for line_to_update in sorted(lines_list):
         for index, nl_section in enumerate(nl_sections):
             # If the line to delete/add is above the current nl_section
@@ -457,7 +477,7 @@ def delete_or_append_lines(lines_list, nl_sections, update_value):
 
 
 
-def update_nl_section(result, nl_file_dict, nl_sections, filename):
+def update_nl_sections(result, orig_file_dict, nl_sections, filename):
     """
     :param nl_section: The nl_section of the language of which the file is made.
     For eg: If the file being linted is a temp_jinja file then nl_sections
@@ -485,13 +505,14 @@ def update_nl_section(result, nl_file_dict, nl_sections, filename):
     nl_sections.sort(key = lambda x: x.index)
     diff_dict = result.diffs_dict()
     diff = diff_dict[filename]
-    modified_diff = diff.modified()
+    modified_diff = diff.modified
     changed_lines, deleted_lines, added_lines = diff.get_diff_info()
 
     # Check if it is necessary to store the value into nl_sections. Or can we
     # only call the function directly.
     nl_sections = delete_or_append_lines(deleted_lines, nl_sections, -1)
     nl_sections = delete_or_append_lines(added_lines, nl_sections, 1)
-    nl_sections = update_changed_lines(changed_lines, nl_file_dict, nl_sections)  
+    nl_sections = update_changed_lines(changed_lines, orig_file_dict, nl_sections,
+        filename=filename,modified_diff=modified_diff)  
 
     

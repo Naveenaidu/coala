@@ -67,10 +67,17 @@ class ResultAction:
                                    information.
         :return:                   The modified file_diff_dict.
         """
-        if(section.get('handle_nested')):
+        print('\n ALL NL SECTIONS RESULTACTION \n', all_nl_sections)
+        nl_sections = []
+        if(section.get('handle_nested', False)):
           from coalib.nestedlib.NlFileHandler import get_nl_sections
-          file_lang = section.get('file_lang')
+          file_lang = str(section.get('file_lang'))
+          #print("\n",type(file_lang))
+          #print('\n ALL NL SECTIONS RESULTACTION \n', all_nl_sections)
           nl_sections = get_nl_sections(all_nl_sections, file_lang)
+          print('\n NL SECTIONS RESULTACTION \n', nl_sections)
+
+        
 
         params = self.get_metadata().create_params_from_section(section)
         return self.apply(result, original_file_dict, file_diff_dict,

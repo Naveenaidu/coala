@@ -631,7 +631,7 @@ def process_queues(processes,
 
     # Get all the nl_sections generated from the parser
     all_nl_sections=None
-    if section.get('handle_nested'):
+    if section.get('handle_nested', False):
         all_nl_sections = get_nl_sections_parser(section)
 
     #print('\nall_nl_sections\n', all_nl_sections)
@@ -654,17 +654,42 @@ def process_queues(processes,
                     diff_dict = result.diffs_dict()
                     diff = diff_dict[filename]
                     changed_lines, deleted_lines, added_lines = diff.get_diff_info()
+                    print("\n MODIFIED \n", diff.modified)
+                    print("\n UNIFIED DIFF\n", diff.unified_diff)
+                    
                     print("\n CHANGED_LINES ", changed_lines)
                     print("\n DELETED lINES ", deleted_lines)
                     print("\n ADDED LINES   ", added_lines)
                     #print("\n DIFF RANGE ", diff.range(filename))
                     #print("\n ORIGINAL \n", diff.original)
                     #print("\n RAW MODIFIED \n", diff._raw_modified())
-                    print("\n MODIFIED \n", diff.modified)
-                    print("\n UNIFIED DIFF\n", diff.unified_diff)
+                    
                     print("\n AFFECTED CODE ", diff.affected_code(filename)[0].start.line)
-                    print("*"*80)
+                    
 
+                    # REMOVE REMOVE
+                    # REMOVE THE CODE BELOW --- TESTING NL RESULT HANDLER:
+                    from coalib.nestedlib.NlResultHandler import update_nl_sections
+                    from coalib.nestedlib.NlFileHandler import get_nl_sections
+                    from coalib.nestedlib.NlCore import print_nl_sections
+                    from pprint import pprint
+                    file_lang = str(section.get('file_lang'))
+                    nl_sections = get_nl_sections(all_nl_sections, file_lang)
+                    nl_section_before = print_nl_sections(nl_sections)
+                    print("\n NLSection BEFORE UPDATION: \n")
+                    print(nl_section_before)
+                    print("\n")
+                    update_nl_sections(result=result, 
+                                         filename=filename, 
+                                         orig_file_dict=file_dict, 
+                                         nl_sections=nl_sections)
+                    nl_section_after = print_nl_sections(nl_sections)
+                    print("\n NLSection AFTER UPDATION: \n")
+                    print(nl_section_after)
+                    print("\n")
+                    print("*"*75)
+                    # TESTING CODE UNTIL HERE
+                    # REMOVE THIS PARTTT
 
                 result_files.update(get_file_list(local_result_dict[index]))
                 retval, res = print_result(local_result_dict[index],

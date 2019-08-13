@@ -15,10 +15,17 @@ def get_nl_sections(all_nl_sections, lang):
     """
     # Get nl_section of `lang` language
     nl_sections = []
+    #print("\n NLFILE HANDLER GET NL SECTION",all_nl_sections)
+    #print("\n NLFILE HANDLER GET NL SECTION LANG", lang)
     for nl_section in all_nl_sections:
+        #print(type(nl_section.language))
+        #print(type(lang))
+        #print(nl_section.language == lang)
         if nl_section.language == lang:
+            #print("TRUEEEEE")
             nl_sections.append(nl_section)
 
+    #print("\n NLFILE HANDLER GET NL SECTION nl_Section ", nl_sections)
     # Sort the nl_sections according to their indices
     nl_sections = sorted(nl_sections, key=lambda nl_section: nl_section.index)
     return nl_sections

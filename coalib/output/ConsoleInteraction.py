@@ -281,7 +281,7 @@ def print_result(console_printer,
     :param interactive:     Variable to check whether or not to
                             offer the user actions interactively.
     """
-    print('\n ALL_NL_SECTIONS ', all_nl_sections )
+    print('\n CONSOLEINTERC ALL_NL_SECTIONS ', all_nl_sections )
     no_color = not console_printer.print_colored
     if not isinstance(result, Result):
         logging.warning('One of the results can not be printed since it is '

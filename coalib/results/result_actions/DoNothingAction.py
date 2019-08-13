@@ -10,7 +10,8 @@ class DoNothingAction(ResultAction):
     def apply(self,
               result,
               original_file_dict,
-              file_diff_dict):
+              file_diff_dict,
+              nl_sections=None):
         """
         Do (N)othing
         """
