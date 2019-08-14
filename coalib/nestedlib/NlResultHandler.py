@@ -230,7 +230,7 @@ def update_delted_column_changed_line(nl_sections,
             print("\nINSIDE DELE COL CHANGED LINE CASE 2\n")
             decrease_nl_section_columns(section_index+1, nl_sections, deletion_value)
   
-        # Case 3: The deletion lies in between the sections
+        # Case 3: The deletion lies inside sections
         # Decrease the end column of the selected section
         # Decrease the start and end of all the corresponding nl_sections
         elif(nl_section.start.column <= a_index_1 and 
@@ -412,6 +412,14 @@ def update_changed_lines(changed_lines, nl_file_dict, nl_sections, filename, mod
         # Get all the nl_sections present on the line
         all_nl_sections = [nl_section for nl_section in nl_sections 
                             if nl_section.start.line == line ]
+
+        # Do not update the columns if the change is happening on one of the 
+        # lines of a pure nl_section. Because it doesn't matter.
+        # Remember the parsing is done in  a way that, a mixed line is kept in
+        # a seperate section altogether, it is not mixed with the lines of
+        # pure nl_section
+        if(len(all_nl_sections) == 1):
+            return
         print("\n NlResultHandler nl_file_dict \n", nl_file_dict)
         print("\n NlResultHandler modified_diff \n", modified_diff)
         orig_line = nl_file_dict[filename][line-1]
