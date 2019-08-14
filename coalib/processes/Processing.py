@@ -682,7 +682,8 @@ def process_queues(processes,
                     update_nl_sections(result=result, 
                                          filename=filename, 
                                          orig_file_dict=file_dict, 
-                                         nl_sections=nl_sections)
+                                         nl_sections=nl_sections,
+                                         all_nl_sections=all_nl_sections)
                     nl_section_after = print_nl_sections(nl_sections)
                     print("\n NLSection AFTER UPDATION: \n")
                     print(nl_section_after)

@@ -336,26 +336,32 @@ def update_inserted_column_changed_line(nl_sections,
 
         insertion_value = b_index_2 - b_index_1
 
+        print("\na_index_1 :", a_index_1)
+        print("\na_index_2 :", a_index_2)
+        print("\nnl_section.start.column: ", nl_section.start.column)
+        print("\nnl_section.end.column: ", nl_section.end.column)
         # CASE 1: Insertion is happening inside a nl_section. 
         # Inside a section include the begging and end column of the section
         if(nl_section.start.column <= a_index_1 and 
-                                nl_section.end.column >= a_index_1):
+                                nl_section.end.column >= a_index_2):
             print("\nINSIDE INSERTION COL CHANGED LINE CASE 1\n")
             # Increase the linted_end of that section and increase the 
             # linted_start and linted_end of all the following sections.
             nl_section.linted_end.column += insertion_value
             increase_nl_section_columns(section_index+1, nl_sections, insertion_value)
+            break
 
         # CASE 2: If the insertion is in between two sections
         elif( a_index_1 > nl_section.end.column and 
-                    a_index_2 < nl_sections[index+1].start.column ):
+                    a_index_2 < nl_sections[section_index+1].start.column ):
             print("\nINSIDE INSERTION COL CHANGED LINE CASE 2\n")
             # Increase the end of the section that is right before the a_index_1
             # so as to include that into it's section.
             # Increase the linted_start and linted_end of all the other sections
             # that come after the a_index_1
-            nl_section.linted_end.column = b_index_2
+            nl_section.linted_end.column += insertion_value
             increase_nl_section_columns(section_index+1, nl_sections, insertion_value)
+            break
 
         # CASE 3: The insertion is happening ahead of all the nl_sections
         elif( a_index_1 < nl_sections[0].start.column):
@@ -364,6 +370,7 @@ def update_inserted_column_changed_line(nl_sections,
             # elements.
             nl_sections[0].linted_start.column -= insertion_value
             increase_nl_section_columns(1, nl_sections, insertion_value)
+            break
 
 def update_replaced_column_changed_line(nl_sections,
                                         tag,
@@ -406,20 +413,30 @@ def update_replaced_column_changed_line(nl_sections,
                 increase_nl_section_columns(section_index+1, nl_sections, replaced_value)
 
 
-def update_changed_lines(changed_lines, nl_file_dict, nl_sections, filename, modified_diff=None):
+def update_changed_lines(changed_lines, nl_file_dict, nl_sections, filename, 
+                        all_nl_sections, modified_diff=None):
     """Update the changed lines in the nl_section"""
     for line in sorted(changed_lines):
         # Get all the nl_sections present on the line
-        all_nl_sections = [nl_section for nl_section in nl_sections 
+        all_nl_sections_line = [nl_section for nl_section in all_nl_sections 
                             if nl_section.start.line == line ]
-
+        
         # Do not update the columns if the change is happening on one of the 
-        # lines of a pure nl_section. Because it doesn't matter.
+        # lines of a pure nl_section. Or if we have no all_nl_section, that means
+        # the lines belongs to a pure_sections. And it's not necessary to update
+        # the column of a nl_section.
+        # Because it doesn't matter.
         # Remember the parsing is done in  a way that, a mixed line is kept in
         # a seperate section altogether, it is not mixed with the lines of
         # pure nl_section
-        if(len(all_nl_sections) == 1):
+        if(len(all_nl_sections_line) == 1):
             return
+
+        # Get the nl_section of the current language present on the line
+        nl_sections_line = [nl_section for nl_section in all_nl_sections_line 
+                            if nl_section.start.line == line ]
+
+        print("\n NL SECTIONS on the LINE\n", nl_sections_line)
         print("\n NlResultHandler nl_file_dict \n", nl_file_dict)
         print("\n NlResultHandler modified_diff \n", modified_diff)
         orig_line = nl_file_dict[filename][line-1]
@@ -462,7 +479,7 @@ def update_changed_lines(changed_lines, nl_file_dict, nl_sections, filename, mod
                 b_index_2 += 1
             
                 if tag == 'delete':
-                    update_delted_column_changed_line(nl_sections,
+                    update_delted_column_changed_line(nl_sections_line,
                                                       tag, 
                                                       a_index_1, 
                                                       a_index_2, 
@@ -470,7 +487,7 @@ def update_changed_lines(changed_lines, nl_file_dict, nl_sections, filename, mod
                                                       b_index_2)
 
                 elif tag == 'insert':
-                    update_inserted_column_changed_line(nl_sections,
+                    update_inserted_column_changed_line(nl_sections_line,
                                                         tag,
                                                         a_index_1,
                                                         a_index_2,
@@ -478,7 +495,7 @@ def update_changed_lines(changed_lines, nl_file_dict, nl_sections, filename, mod
                                                         b_index_2)
 
                 elif tag == 'replace':
-                    update_replaced_column_changed_line(nl_sections,
+                    update_replaced_column_changed_line(nl_sections_line,
                                                         tag,
                                                         a_index_1,
                                                         a_index_2,
@@ -495,6 +512,8 @@ def delete_or_append_lines(lines_list, nl_sections, update_value):
     A particular line can be deleted or added
     """
     # TODO: Look for optimizations
+    if not lines_list:
+        return nl_sections
     print("\nINSIDE DELETE OR APPEND LINES\n")
     for line_to_update in sorted(lines_list):
         for index, nl_section in enumerate(nl_sections):
@@ -505,6 +524,7 @@ def delete_or_append_lines(lines_list, nl_sections, update_value):
                 for nl_section in nl_sections[index:]:
                     nl_section.linted_start.line += update_value
                     nl_section.linted_end.line += update_value
+                break
 
             # If the line is present inside a section. First update the 
             # linted_end of the section. Then update the linted_start and 
@@ -515,12 +535,13 @@ def delete_or_append_lines(lines_list, nl_sections, update_value):
                 for nl_section in nl_sections[index+1:]:
                     nl_section.linted_start.line += update_value
                     nl_section.linted_end.line += update_value
+                break
 
     return nl_sections
 
 
 
-def update_nl_sections(result, orig_file_dict, nl_sections, filename):
+def update_nl_sections(result, orig_file_dict, nl_sections, all_nl_sections, filename):
     """
     :param nl_section: The nl_section of the language of which the file is made.
     For eg: If the file being linted is a temp_jinja file then nl_sections
@@ -546,16 +567,21 @@ def update_nl_sections(result, orig_file_dict, nl_sections, filename):
     assembling.
     """
     nl_sections.sort(key = lambda x: x.index)
+    all_nl_sections.sort(key = lambda x: x.index)
+
     diff_dict = result.diffs_dict()
     diff = diff_dict[filename]
     modified_diff = diff.modified
     changed_lines, deleted_lines, added_lines = diff.get_diff_info()
+    print("\ndeleted_lines: ", deleted_lines)
 
     # Check if it is necessary to store the value into nl_sections. Or can we
     # only call the function directly.
     nl_sections = delete_or_append_lines(deleted_lines, nl_sections, -1)
     nl_sections = delete_or_append_lines(added_lines, nl_sections, 1)
-    nl_sections = update_changed_lines(changed_lines, orig_file_dict, nl_sections,
-        filename=filename,modified_diff=modified_diff)  
-
-    
+    nl_sections = update_changed_lines(changed_lines=changed_lines, 
+                                       nl_file_dict=orig_file_dict, 
+                                       nl_sections=nl_sections,
+                                       filename=filename,
+                                       modified_diff=modified_diff, 
+                                       all_nl_sections=all_nl_sections)
