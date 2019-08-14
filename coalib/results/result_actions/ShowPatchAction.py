@@ -88,6 +88,8 @@ class ShowPatchAction(ResultAction):
               original_file_dict,
               file_diff_dict,
               nl_sections=None,
+              all_nl_sections=None,
+              nl_file_dict=None,
               no_color: bool = False,
               show_result_on_top: bool = False):
         """

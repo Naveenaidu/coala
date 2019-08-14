@@ -214,7 +214,8 @@ def print_result(results,
                  ignore_ranges,
                  console_printer,
                  apply_single=False,
-                 all_nl_sections=None):
+                 all_nl_sections=None,
+                 nl_file_dict=None):
     """
     Takes the results produced by each bear and gives them to the print_results
     method to present to the user.
@@ -258,7 +259,8 @@ def print_result(results,
                   file_diff_dict,
                   console_printer,
                   apply_single,
-                  all_nl_sections=all_nl_sections)
+                  all_nl_sections=all_nl_sections,
+                  nl_file_dict=nl_file_dict)
     return retval or len(results) > 0, patched_results
 
 
@@ -582,7 +584,8 @@ def process_queues(processes,
                    console_printer,
                    debug=False,
                    apply_single=False,
-                   debug_bears=False):
+                   debug_bears=False,
+                   nl_file_dict=None):
     """
     Iterate the control queue and send the results received to the print_result
     method so that they can be presented to the user.
@@ -616,6 +619,7 @@ def process_queues(processes,
     """
     file_diff_dict = {}
     retval = False
+    
     # Number of processes working on local/global bears. They are count down
     # when the last queue element of that process is processed which may be
     # *after* the process has ended!
@@ -664,30 +668,35 @@ def process_queues(processes,
                     #print("\n ORIGINAL \n", diff.original)
                     #print("\n RAW MODIFIED \n", diff._raw_modified())
                     
-                    print("\n AFFECTED CODE ", diff.affected_code(filename)[0].start.line)
+                    #print("\n AFFECTED CODE ", diff.affected_code(filename)[0].start.line)
                     
 
                     # REMOVE REMOVE
                     # REMOVE THE CODE BELOW --- TESTING NL RESULT HANDLER:
-                    from coalib.nestedlib.NlResultHandler import update_nl_sections
-                    from coalib.nestedlib.NlFileHandler import get_nl_sections
-                    from coalib.nestedlib.NlCore import print_nl_sections
-                    from pprint import pprint
-                    file_lang = str(section.get('file_lang'))
-                    nl_sections = get_nl_sections(all_nl_sections, file_lang)
-                    nl_section_before = print_nl_sections(nl_sections)
-                    print("\n NLSection BEFORE UPDATION: \n")
-                    print(nl_section_before)
-                    print("\n")
-                    update_nl_sections(result=result, 
-                                         filename=filename, 
-                                         orig_file_dict=file_dict, 
-                                         nl_sections=nl_sections,
-                                         all_nl_sections=all_nl_sections)
-                    nl_section_after = print_nl_sections(nl_sections)
-                    print("\n NLSection AFTER UPDATION: \n")
-                    print(nl_section_after)
-                    print("\n")
+                    if section.get('handle_nested', False):
+                      from coalib.nestedlib.NlResultHandler import (update_nl_sections, 
+                                                                    update_nl_file_dict)
+                      from coalib.nestedlib.NlFileHandler import get_nl_sections
+                      from coalib.nestedlib.NlCore import print_nl_sections
+                      from pprint import pprint
+                      file_lang = str(section.get('file_lang'))
+                      nl_sections = get_nl_sections(all_nl_sections, file_lang)
+                      nl_section_before = print_nl_sections(nl_sections)
+                      print("\n")
+                     
+                      print("\n ORIG FILE DICT\n", file_dict)
+                      #update_nl_sections(result=result, 
+                      #                     filename=filename, 
+                      #                     orig_file_dict=file_dict, 
+                      #                     nl_sections=nl_sections,
+                      #                     all_nl_sections=all_nl_sections)
+                      #update_nl_file_dict(nl_file_dict[filename], 
+                      #                file_dict[filename], diff.modified)
+                      nl_section_after = print_nl_sections(nl_sections)
+                      print("\n NLSection AFTER UPDATION: \n")
+                      pprint(nl_section_after)
+                      #print("\n")
+                      print("\n NL FILE DICT\n", nl_file_dict)
                     print("*"*75)
                     # TESTING CODE UNTIL HERE
                     # REMOVE THIS PARTTT
@@ -704,9 +713,11 @@ def process_queues(processes,
                                            console_printer=console_printer,
                                            apply_single=apply_single,
                                            all_nl_sections=all_nl_sections,
+                                           nl_file_dict=nl_file_dict,
                                            )
                 local_result_dict[index] = res
-                print("\n RES \n", res)
+                #print("\n RES \n", res)
+                #print("\n NL FILE DICT \n", nl_file_dict)
             else:
                 assert control_elem == CONTROL_ELEMENT.GLOBAL
                 global_result_buffer.append(index)
@@ -893,8 +904,11 @@ def execute_section(section,
     for runner in processes:
         runner.start()
 
-    print("\nLOCAL RESULT\n", arg_dict['local_result_dict'], 
-          "\n GLOBAL RESULT\n", arg_dict['global_result_dict'])
+    # Send in a file_dict which will change
+    nl_file_dict = arg_dict['file_dict'].copy()
+    for file in nl_file_dict:
+      nl_file_dict[file] = list(nl_file_dict[file])
+    print("\n EXECUTE SECTION NL FILE DICT \n", nl_file_dict)
     try:
         return (process_queues(processes,
                                arg_dict['control_queue'],
@@ -908,10 +922,12 @@ def execute_section(section,
                                console_printer=console_printer,
                                debug=debug,
                                apply_single=apply_single,
-                               debug_bears=debug_bears),
+                               debug_bears=debug_bears,
+                               nl_file_dict=nl_file_dict),
                 arg_dict['local_result_dict'],
                 arg_dict['global_result_dict'],
-                arg_dict['file_dict'])
+                arg_dict['file_dict'],
+                nl_file_dict)
     finally:
         if not (debug or debug_bears):
             # in debug mode multiprocessing and logger_thread are disabled

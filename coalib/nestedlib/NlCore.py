@@ -89,6 +89,9 @@ def nested_language(args=None, arg_list=None, arg_parser=None):
 def print_nl_sections(nl_sections):
     str_nl_section = []
     for nl_section in nl_sections:
-        str_nl_section.append(str(nl_section))
+        # For debugging let's remove the file name
+        #str_nl_section.append(str(nl_section))
+        str_section = str(nl_section).split(':')
+        str_nl_section.append(str_section[1:])
 
     return str_nl_section

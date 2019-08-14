@@ -11,7 +11,9 @@ class DoNothingAction(ResultAction):
               result,
               original_file_dict,
               file_diff_dict,
-              nl_sections=None):
+              nl_sections=None,
+              nl_file_dict=None,
+              all_nl_sections=None):
         """
         Do (N)othing
         """

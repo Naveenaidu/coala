@@ -139,6 +139,7 @@ def run_coala(console_printer=None,
     sections = {}
     results = {}
     file_dicts = {}
+    nl_file_dicts ={}
     try:
         yielded_results = yielded_unfixed_results = False
         did_nothing = True
@@ -217,6 +218,7 @@ def run_coala(console_printer=None,
             did_nothing = False
 
             file_dicts[section_name] = section_result[3]
+            nl_file_dicts[section_name] = section_result[4]
 
         update_settings_db(None, settings_hash)
         if cache:
@@ -246,5 +248,12 @@ def run_coala(console_printer=None,
         exitcode = exitcode or get_exitcode(exception)
 
     print("\n FILE DICTS FROM COALA MAIN", file_dicts)
+    print("\n NL FILE DICTS FROM COALA MAIN", nl_file_dicts)
+
+    for nl_section_name, nl_section_value in nl_file_dicts.items():
+        for nl_file_name, nl_file_content in nl_section_value.items():
+            file_name = nl_file_name + '.orig'
+            with open(file_name, 'w') as f:
+                f.writelines(nl_file_content)
 
     return results, exitcode, file_dicts

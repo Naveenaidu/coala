@@ -1,6 +1,23 @@
 import difflib
 #from coalib.results.Result import diffs_dict
 
+def update_nl_file_dict(nl_file_dict, orig_file_dict, diff_modified):
+    patched_lines = list(set(orig_file_dict) - set(diff_modified))
+    print("\n PATCHED_LINES\n", patched_lines)
+    for line in patched_lines:
+        index = orig_file_dict.index(line)
+        print(index)
+        # Check if the line is present in the patched_lines, if yes, replace
+        # the original_line in nl_file_dict with it.
+        try:
+            print("\nReplacing nl_file_dict with patched_line\n")
+            nl_file_dict[index] = diff_modified[index]
+        except:
+            # If it's not present, it means that the line is deleted.
+            nl_file_dict.pop(index)
+
+    return nl_file_dict
+
 def decrease_nl_section_columns(section_index, nl_sections, deletion_value):
     """
     Decreases the column number of linted_start and linted_end off all the 

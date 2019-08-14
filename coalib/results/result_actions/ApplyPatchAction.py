@@ -7,7 +7,7 @@ from coala_utils.FileUtils import detect_encoding
 from coalib.results.result_actions.ShowPatchAction import ShowPatchAction
 from coalib.results.result_actions.ResultAction import ResultAction
 
-from coalib.nestedlib.NlResultHandler import update_nl_sections
+from coalib.nestedlib.NlResultHandler import update_nl_sections, update_nl_file_dict
 
 
 class ApplyPatchAction(ResultAction):
@@ -21,6 +21,8 @@ class ApplyPatchAction(ResultAction):
               original_file_dict,
               file_diff_dict,
               nl_sections=None,
+              all_nl_sections=None,
+              nl_file_dict=None,
               no_orig: bool = False):
         """
         (A)pply patch
@@ -28,7 +30,6 @@ class ApplyPatchAction(ResultAction):
         :param no_orig: Whether or not to create .orig backup files
         """
         
-        #print("\n APPLY_PATCH ACTION NL SECTIONS\n", nl_sections)
         for filename in result.diffs:
             pre_patch_filename = filename
             print("\n FILENAME \n", filename)
@@ -64,16 +65,19 @@ class ApplyPatchAction(ResultAction):
                 else:
                   print("*"*60)
                   print("\n     UPDATING NL SECTIONS      \n")
-                  """
+                  
                   update_nl_sections(result=result, 
                                      filename=filename, 
                                      orig_file_dict=original_file_dict, 
-                                     nl_sections=nl_sections)
-                  """
+                                     nl_sections=nl_sections,
+                                     all_nl_sections=all_nl_sections)
+                  update_nl_file_dict(nl_file_dict[filename], 
+                                      original_file_dict[filename], diff.modified)
+                  print(nl_file_dict)
 
             if diff.delete or diff.rename:
                 if diff.rename != pre_patch_filename and isfile(
                         pre_patch_filename):
                     remove(pre_patch_filename)
-
-        return file_diff_dict
+        print(file_diff_dict)
+        return file_diff_dict, nl_file_dict

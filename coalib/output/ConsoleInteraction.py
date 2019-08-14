@@ -151,7 +151,8 @@ def acquire_actions_and_apply(console_printer,
                               file_dict,
                               cli_actions=None,
                               apply_single=False,
-                              all_nl_sections=None):
+                              all_nl_sections=None,
+                              nl_file_dict=None):
     """
     Acquires applicable actions and applies them.
 
@@ -198,7 +199,8 @@ def acquire_actions_and_apply(console_printer,
             file_dict,
             applied_actions,
             apply_single=apply_single,
-            all_nl_sections=all_nl_sections
+            all_nl_sections=all_nl_sections,
+            nl_file_dict=nl_file_dict
         )
         if not continue_interaction:
             break
@@ -265,7 +267,8 @@ def print_result(console_printer,
                  file_dict,
                  interactive=True,
                  apply_single=False,
-                 all_nl_sections=None):
+                 all_nl_sections=None,
+                 nl_file_dict=None):
     """
     Prints the result to console.
 
@@ -281,7 +284,7 @@ def print_result(console_printer,
     :param interactive:     Variable to check whether or not to
                             offer the user actions interactively.
     """
-    print('\n CONSOLEINTERC ALL_NL_SECTIONS ', all_nl_sections )
+    #print('\n CONSOLEINTERC ALL_NL_SECTIONS ', all_nl_sections )
     no_color = not console_printer.print_colored
     if not isinstance(result, Result):
         logging.warning('One of the results can not be printed since it is '
@@ -334,7 +337,8 @@ def print_result(console_printer,
                                   file_dict,
                                   cli_actions,
                                   apply_single=apply_single,
-                                  all_nl_sections=all_nl_sections)
+                                  all_nl_sections=all_nl_sections,
+                                  nl_file_dict=nl_file_dict)
 
 
 def print_diffs_info(diffs, printer):
@@ -495,7 +499,8 @@ def print_results(log_printer,
                   file_diff_dict,
                   console_printer,
                   apply_single=False,
-                  all_nl_sections=None):
+                  all_nl_sections=None,
+                  nl_file_dict=None):
     """
     Prints all the results in a section.
 
@@ -523,7 +528,8 @@ def print_results(log_printer,
                      result,
                      file_dict,
                      apply_single=apply_single,
-                     all_nl_sections=all_nl_sections)
+                     all_nl_sections=all_nl_sections,
+                     nl_file_dict=nl_file_dict)
 
 
 def print_affected_lines(console_printer, file_dict, sourcerange):
@@ -708,7 +714,8 @@ def try_to_apply_action(action_name,
                         file_diff_dict,
                         file_dict,
                         applied_actions,
-                        all_nl_sections=None):
+                        all_nl_sections=None,
+                        nl_file_dict=None):
     """
     Try to apply the given action.
 
@@ -736,7 +743,8 @@ def try_to_apply_action(action_name,
                                          file_dict,
                                          file_diff_dict,
                                          section,
-                                         all_nl_sections=all_nl_sections)
+                                         all_nl_sections=all_nl_sections,
+                                         nl_file_dict=nl_file_dict)
         if not isinstance(chosen_action, DoNothingAction):
             console_printer.print(
                 format_lines(chosen_action.SUCCESS_MESSAGE, symbol='['),
@@ -763,7 +771,8 @@ def ask_for_action_and_apply(console_printer,
                              file_dict,
                              applied_actions,
                              apply_single=False,
-                             all_nl_sections=None):
+                             all_nl_sections=None,
+                             nl_file_dict=None):
     """
     Asks the user for an action and applies it.
 
@@ -814,7 +823,8 @@ def ask_for_action_and_apply(console_printer,
                                     file_diff_dict,
                                     file_dict,
                                     applied_actions,
-                                    all_nl_sections=all_nl_sections)
+                                    all_nl_sections=all_nl_sections,
+                                    nl_file_dict=nl_file_dict)
         return False
     else:
         for action_choice, action_choice_name in zip(actions_desc,
@@ -836,7 +846,8 @@ def ask_for_action_and_apply(console_printer,
                                         file_diff_dict,
                                         file_dict,
                                         applied_actions,
-                                        all_nl_sections=all_nl_sections)
+                                        all_nl_sections=all_nl_sections,
+                                        nl_file_dict=nl_file_dict)
 
             if action_choice == 'Do (N)othing':
                 return False
