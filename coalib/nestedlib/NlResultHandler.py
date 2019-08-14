@@ -53,10 +53,16 @@ def is_delete_section_case_4(nl_sections, a_index_1, a_index_2):
             a_index_1_section = index
 
         # Check for a_index_2
-        elif(not a_index_2_bool and 
+        # If we have only one nl_section then the condition 
+        # `a_index_2 >= nl_sections[-1].end.column` checks if the a_index_2 is
+        # greater than the last element. This indirectly means that the 
+        # a_index_2 is outside. That's also, why this condition needs to be
+        # checked before we check if the a_index_2 is between two nl_section.
+        # Because if we do so, we get `index_out_of_bounds`
+        elif(not a_index_2_bool and (a_index_2 >= nl_sections[-1].end.column or 
             (a_index_2 >= nl_section.end.column and  
-                a_index_2 <= nl_sections[index+1].start.column) and 
-            a_index_2 >= nl_sections[-1].end.column):
+                a_index_2 <= nl_sections[index+1].start.column)
+            )):
             a_index_2_bool = True
             a_index_2_section = index+1
 
@@ -99,10 +105,10 @@ def is_delete_section_case_5(nl_sections, a_index_1, a_index_2):
             a_index_2_section = index
 
         # Check for a_index_1
-        elif(not a_index_1_bool and 
+        elif(not a_index_1_bool and(a_index_1 <= nl_sections[0].end.column or 
             (a_index_1 >= nl_section.end.column and  
-                a_index_1 <= nl_sections[index+1].start.column) and 
-            a_index_1 <= nl_sections[0].end.column):
+                a_index_1 <= nl_sections[index+1].start.column) 
+            )):
             a_index_1_bool = True
             a_index_1_section = index - 1
 
@@ -167,15 +173,19 @@ def is_delete_section_case_7(nl_sections, a_index_1, a_index_2):
 
     for index, nl_section in enumerate(nl_sections):
         # Check if a_index_1 is inside a nl_section
-        if(nl_sections[index].start.column <= a_index_1 and 
-            nl_sections[index+1].end.column >= a_index_1 and not a_index_1_bool):
+        if((a_index_1 <= nl_sections[0].end.column or 
+            (nl_sections[index].start.column <= a_index_1 and 
+            nl_sections[index+1].end.column >= a_index_1)) and 
+            not a_index_1_bool):
             a_index_1_bool = True
             a_index_1_section = index
 
         # Check if a_index_2 is inside a nl_section
         # a_index_2 points to the section that is just after a_index_2
-        elif(nl_sections[index].start.column <= a_index_2 and 
-            nl_sections[index+1].end.column >= a_index_2 and not a_index_2_bool):
+        elif((a_index_2 >= nl_sections[-1].end.column or 
+            (a_index_2 >= nl_section.end.column and  
+                a_index_2 <= nl_sections[index+1].start.column)) 
+            and not a_index_2_bool):
             a_index_2_bool = True
             a_index_2_section = index + 1
 
@@ -193,7 +203,7 @@ def update_delted_column_changed_line(nl_sections,
                          a_index_1, 
                          a_index_2, 
                          b_index_1, 
-                         b_index2):
+                         b_index_2):
     """
     Add/Delete the column numbers of the linted_start and linted_end SourceRange
     objects.
@@ -215,9 +225,8 @@ def update_delted_column_changed_line(nl_sections,
 
         # CASE 2:  Deletion is between two sections
         # TODO: CHECK IF THIS IS COVERED BY OTHER CASES
-        if(nl_section.end.column < a_index_1 and 
-                 a_index_2 < nl_sections[section_index+1].start.column and 
-                 len(nl_sections)>1):
+        if((len(nl_sections)>1) and (nl_section.end.column < a_index_1 and 
+                 a_index_2 < nl_sections[section_index+1].start.column)):
             print("\nINSIDE DELE COL CHANGED LINE CASE 2\n")
             decrease_nl_section_columns(section_index+1, nl_sections, deletion_value)
   
@@ -240,20 +249,23 @@ def update_delted_column_changed_line(nl_sections,
         # In is_delete_section_case_4, we have already marked the section that
         # are inside the a_index_1 and a_index_2 as deleted. We just have to 
         # change the linted_start.column and linted_end.column values.
+
         delete_case_4  = is_delete_section_case_4(nl_sections, a_index_1, a_index_2)
-        if (delete_case_4[0]):
+        if(delete_case_4[0]):
             print("\nINSIDE DELE COL CHANGED LINE CASE 4\n")
             a_index_1_section = delete_case_4[1]
             a_index_2_section = delete_case_4[2]
 
             # Decrease the end column of the section inside which a1 is present
-            nl_sections[a_index_1_section].linted_end.column = a_index_1
+            # Decrease the end column to point to the column before a_index_1
+            nl_sections[a_index_1_section].linted_end.column = a_index_1 - 1
 
             # Decrease the start and end of all the sections that comes after 
             # a_index_2, if there are no sections after if then ignore it,
             # because this case happens only when a_index_2 is at the end of 
             # last nl_section
             decrease_nl_section_columns(a_index_2_section, nl_sections, deletion_value)
+            break
             
         # CASE 5: Some part of deletion is inside a nl_section and the remaining
         # part is outside. 
@@ -273,6 +285,7 @@ def update_delted_column_changed_line(nl_sections,
             # a_index_2 is present by the deletion_value. All the sections
             # before the a_index_1 remains unaffected.
             decrease_nl_section_columns(a_index_2_section, nl_sections, deletion_value)
+            break
 
         # CASE 6: a_index_1 and a_index_2 both are inside nl_sections
         delete_case_6 = is_delete_section_case_6(nl_sections, a_index_1, a_index_2)
@@ -283,7 +296,7 @@ def update_delted_column_changed_line(nl_sections,
 
             # Decrease the linted_end of the section in which a_index_1 is 
             # present.
-            nl_sections[a_index_1_section].linted_end.column = a_index_1
+            nl_sections[a_index_1_section].linted_end.column = a_index_1 - 1
 
             # Increase the linted_start of the section in which a_index_2 is 
             # present.
@@ -293,12 +306,14 @@ def update_delted_column_changed_line(nl_sections,
             # a_index_2 is present by the deletion_value. All the sections
             # before the a_index_1 remains unaffected
             decrease_nl_section_columns(a_index_2_section, nl_sections, deletion_value)
+            break
 
         # CASE 7: a_index_1 and a_index_2 are outside the nl_sections
         delete_case_7 = is_delete_section_case_7(nl_sections, a_index_1, a_index_2)
-        if(delete_case7[0]):
+        if(delete_case_7[0]):
             print("\nINSIDE DELE COL CHANGED LINE CASE 7\n")
             decrease_nl_section_columns(a_index_2_section, nl_sections, deletion_value)
+            break
 
 def update_inserted_column_changed_line(nl_sections,
                                         tag,
@@ -402,9 +417,28 @@ def update_changed_lines(changed_lines, nl_file_dict, nl_sections, filename, mod
         orig_line = nl_file_dict[filename][line-1]
         patched_line = modified_diff[line-1]
 
-        print("\nORIG LINE: ", orig_line)
+        print("\nORIG LINE   : ", orig_line)
         print("\nPATCHED LINE: ", patched_line)
         matcher = difflib.SequenceMatcher(None, orig_line, patched_line)
+
+        # PRint the message ---- DELETE IT - DEBUGGING
+        for change_group in matcher.get_grouped_opcodes(1):
+            for (tag,
+                a_index_1,
+                a_index_2,
+                b_index_1,
+                b_index_2) in change_group:
+                # The column when showing the difference starts with 0,
+                # The column in nl_Sections starts with 1
+                a_index_1 += 1
+                a_index_2 += 1
+                b_index_1 += 1
+                b_index_2 += 1
+                print ("%7s a[%d:%d] (%s) b[%d:%d] (%s)" %
+                        (tag, a_index_1, a_index_2, orig_line[a_index_1-1:a_index_2-1],
+                         b_index_1, b_index_2, patched_line[b_index_1-1: b_index_2-1]))
+         # PRint the message ---- DELETE IT - DEBUGGING
+
         for change_group in matcher.get_grouped_opcodes(1):
             for (tag,
                 a_index_1,
@@ -418,6 +452,7 @@ def update_changed_lines(changed_lines, nl_file_dict, nl_sections, filename, mod
                 a_index_2 += 1
                 b_index_1 += 1
                 b_index_2 += 1
+            
                 if tag == 'delete':
                     update_delted_column_changed_line(nl_sections,
                                                       tag, 
