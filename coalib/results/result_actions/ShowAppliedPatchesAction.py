@@ -20,7 +20,9 @@ class ShowAppliedPatchesAction(ResultAction):
     def apply(self,
               result,
               original_file_dict,
-              file_diff_dict):
+              file_diff_dict,
+              nl_file_dict=None,
+              ):
         """
         Show Applied (P)atches
         """

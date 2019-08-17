@@ -34,6 +34,7 @@ from coalib.io.File import File
 from coalib.nestedlib.NlCore import get_parser
 from coalib.nestedlib.NlFileHandler import get_nl_file_dict
 
+from copy import deepcopy
 
 ACTIONS = [DoNothingAction,
            ApplyPatchAction,
@@ -213,7 +214,8 @@ def print_result(results,
                  file_diff_dict,
                  ignore_ranges,
                  console_printer,
-                 apply_single=False):
+                 apply_single=False,
+                 nl_file_dict=None):
     """
     Takes the results produced by each bear and gives them to the print_results
     method to present to the user.
@@ -256,7 +258,8 @@ def print_result(results,
                   file_dict,
                   file_diff_dict,
                   console_printer,
-                  apply_single)
+                  apply_single,
+                  nl_file_dict=nl_file_dict)
     return retval or len(results) > 0, patched_results
 
 
@@ -554,9 +557,12 @@ def yield_ignore_ranges(file_dict):
             # `# start nl section` marks the beginning of a nl_section.
             # `# end nl section` marks the end of a nl_section
             # Note: These position markers have been added by the Nl Core
-            # The user need not/should not add these.                
+            # The user need not/should not add these. 
+            """             
             elif 'ection' in line:
-                if 'start nl section' in line or 'end nl section' in line:
+                line = line.lower()
+                print(line,"\n")
+                if '# start nl section:' in line or '# end nl section:' in line:
                     start = line_number
                     bears = []
                     stop_ignoring = True
@@ -568,6 +574,7 @@ def yield_ignore_ranges(file_dict):
                                    1,
                                    line_number,
                                    len(file[line_number-1])))
+            """
 
         if stop_ignoring is False and start is not None:
             yield (bears,
@@ -602,7 +609,8 @@ def process_queues(processes,
                    console_printer,
                    debug=False,
                    apply_single=False,
-                   debug_bears=False):
+                   debug_bears=False,
+                   nl_file_dict=None):
     """
     Iterate the control queue and send the results received to the print_result
     method so that they can be presented to the user.
@@ -666,7 +674,8 @@ def process_queues(processes,
                                            file_diff_dict,
                                            ignore_ranges,
                                            console_printer=console_printer,
-                                           apply_single=apply_single
+                                           apply_single=apply_single,
+                                           nl_file_dict=nl_file_dict,
                                            )
                 local_result_dict[index] = res
             else:
@@ -690,7 +699,8 @@ def process_queues(processes,
                                    file_diff_dict,
                                    ignore_ranges,
                                    console_printer=console_printer,
-                                   apply_single=apply_single)
+                                   apply_single=apply_single,
+                                   nl_file_dict=nl_file_dict)
         global_result_dict[elem] = res
 
     # One process is the logger thread
@@ -709,7 +719,8 @@ def process_queues(processes,
                                            file_diff_dict,
                                            ignore_ranges,
                                            console_printer,
-                                           apply_single)
+                                           apply_single,
+                                           nl_file_dict=nl_file_dict)
                 global_result_dict[index] = res
             else:
                 assert control_elem == CONTROL_ELEMENT.GLOBAL_FINISHED
@@ -852,6 +863,15 @@ def execute_section(section,
     for runner in processes:
         runner.start()
 
+    # If run in nested language mode, create a nl_file_dict, that will hold the
+    # applied patches by the user. Unlike the normal execution mode of coala
+    # the applied patches are not written in a file, rather they are written/
+    # updated in the nl_file_dict.
+    if section.get('handle_nested', False):
+        nl_file_dict = deepcopy(arg_dict['file_dict'])
+        for file in nl_file_dict:
+            nl_file_dict[file] = list(nl_file_dict[file])
+
     try:
         return (process_queues(processes,
                                arg_dict['control_queue'],
@@ -868,7 +888,8 @@ def execute_section(section,
                                debug_bears=debug_bears),
                 arg_dict['local_result_dict'],
                 arg_dict['global_result_dict'],
-                arg_dict['file_dict'])
+                arg_dict['file_dict'],
+                nl_file_dict)
     finally:
         if not (debug or debug_bears):
             # in debug mode multiprocessing and logger_thread are disabled

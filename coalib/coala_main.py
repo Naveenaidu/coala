@@ -139,6 +139,7 @@ def run_coala(console_printer=None,
     sections = {}
     results = {}
     file_dicts = {}
+    nl_file_dicts = {}
     try:
         yielded_results = yielded_unfixed_results = False
         did_nothing = True
@@ -216,6 +217,7 @@ def run_coala(console_printer=None,
             did_nothing = False
 
             file_dicts[section_name] = section_result[3]
+            nl_file_dicts[section_name] = section_result[4]
 
         update_settings_db(None, settings_hash)
         if cache:

@@ -88,3 +88,20 @@ def print_nl_sections(nl_sections):
         str_nl_section += str_section + "\n"
 
     return str_nl_section
+
+def update_nl_file_dict(nl_file_dict, orig_file_dict, diff_modified):
+    """
+    Update the nl_file_dict with the patches the user chooses to apply.
+    """
+    patched_lines = list(set(orig_file_dict) - set(diff_modified))
+    for line in patched_lines:
+        index = orig_file_dict.index(line)
+        # Check if the line is present in the patched_lines, if yes, replace
+        # the original_line in nl_file_dict with it.
+        try:
+            nl_file_dict[index] = diff_modified[index]
+        except:
+            # If it's not present, it means that the line is deleted.
+            nl_file_dict.pop(index)
+
+    return nl_file_dict
