@@ -1,5 +1,8 @@
 from coalib.io.File import File
 
+# This is used to combine the nl_sections of a mixed language line produced by
+# a parser  into a single nl_section.
+PARSER_MIXED_LINE_COMB = [{'PyJinjaParser':'jinja2'}]
 
 def get_nl_sections(all_nl_sections, lang):
     """
@@ -168,7 +171,10 @@ def get_nl_file_dict(orig_file_path, temp_file_name, lang, parser):
                            "                  = print('Bye Bye')\\n")}
 
     """
+    # ENHANCEMENT: Maybe instead of making parser parse through the file for
+    # every nested language. We can store it somehow?
     all_nl_sections = parser.parse(orig_file_path)
+    all_nl_sections = preprocess_nl_sections(all_nl_sections, parser)
     nl_sections = get_nl_sections(all_nl_sections, lang)
     line_list = get_line_list(nl_sections, orig_file_path)
     line_tuple = beautify_line_list(line_list)
