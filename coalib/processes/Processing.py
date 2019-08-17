@@ -557,7 +557,6 @@ def yield_ignore_ranges(file_dict):
             # The user need not/should not add these.                
             elif 'ection' in line:
                 if 'start nl section' in line or 'end nl section' in line:
-                    print("Inside start nl section ", str(line_number))
                     start = line_number
                     bears = []
                     stop_ignoring = True
