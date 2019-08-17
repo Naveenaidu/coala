@@ -75,3 +75,16 @@ def nested_language(args=None, arg_list=None, arg_parser=None):
             handle_nested = True
 
     return handle_nested
+
+def print_nl_sections(nl_sections):
+    """
+    Print the str repersenation of the
+    """
+    str_nl_section = ""
+    for nl_section in nl_sections:
+        # For debugging let's remove the file name
+        #str_nl_section.append(str(nl_section))
+        str_section = str(nl_section)
+        str_nl_section += str_section + "\n"
+
+    return str_nl_section
