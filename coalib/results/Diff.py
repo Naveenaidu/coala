@@ -656,6 +656,6 @@ class Diff:
             elif line_diff.delete:
                 deleted_lines.append(line_nr)
             if line_diff.add_after:
-                added_lines.append(line_nr)
+                added_lines.append(line_diff.add_after)
 
         return changed_lines, deleted_lines, added_lines

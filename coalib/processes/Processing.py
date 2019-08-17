@@ -524,12 +524,12 @@ def yield_ignore_ranges(file_dict):
             # Before lowering all lines ever read, first look for the biggest
             # common substring, case sensitive: I*gnor*e, start i*gnor*ing,
             # N*oqa*.
-            if 'gnor' in line or 'oqa' in line:
+            if 'gnor' in line or 'oqa' in line or 'ection' in line:
                 line = line.lower()
-                if 'start ignoring ' in line:
+                if 'start ignoring '  in line:
                     start = line_number
                     bears = get_ignore_scope(line, 'start ignoring ')
-                elif 'stop ignoring' in line:
+                elif 'stop ignoring' in line or 'end nl section' in line:
                     stop_ignoring = True
                     if start:
                         yield (bears,
@@ -539,7 +539,6 @@ def yield_ignore_ranges(file_dict):
                                    1,
                                    line_number,
                                    len(file[line_number-1])))
-
                 else:
                     for ignore_stmt in ['ignore ', 'noqa ', 'noqa']:
                         if ignore_stmt in line:
@@ -550,6 +549,25 @@ def yield_ignore_ranges(file_dict):
                                        line_number, 1,
                                        end_line, len(file[end_line-1])))
                             break
+
+            # Ignore the lines which contains `# start nl section` or 
+            # `# end nl section`                
+            elif 'ection' in line:
+                if 'start nl section' in line or 'end nl section' in line:
+                    print("Inside start nl section ", str(line_number))
+                    start = line_number
+                    bears = []
+                    stop_ignoring = True
+                    if start:
+                        yield (bears,
+                               SourceRange.from_values(
+                                   filename,
+                                   start,
+                                   1,
+                                   line_number,
+                                   len(file[line_number-1])))
+
+                
 
         if stop_ignoring is False and start is not None:
             yield (bears,
@@ -630,8 +648,8 @@ def process_queues(processes,
     ignore_ranges = list(yield_ignore_ranges(file_dict))
 
     print("\n FILE_DICT \n", file_dict)
-    print("\n SECTION \n", section)
-    print("\n SECTION LANGUAGE \n", section.get('file_lang'))
+    #print("\n SECTION \n", section)
+    #print("\n SECTION LANGUAGE \n", section.get('file_lang'))
 
     # Get all the nl_sections generated from the parser
     all_nl_sections=None
@@ -693,8 +711,8 @@ def process_queues(processes,
                       #update_nl_file_dict(nl_file_dict[filename], 
                       #                file_dict[filename], diff.modified)
                       nl_section_after = print_nl_sections(nl_sections)
-                      print("\n NLSection AFTER UPDATION: \n")
-                      pprint(nl_section_after)
+                      #print("\n NLSection AFTER UPDATION: \n")
+                      #pprint(nl_section_after)
                       #print("\n")
                       print("\n NL FILE DICT\n", nl_file_dict)
                     print("*"*75)
@@ -717,7 +735,7 @@ def process_queues(processes,
                                            )
                 local_result_dict[index] = res
                 #print("\n RES \n", res)
-                #print("\n NL FILE DICT \n", nl_file_dict)
+                #print("\n NL SECTIONS PROCESSING \n", print_nl_sections(nl_sections))
             else:
                 assert control_elem == CONTROL_ELEMENT.GLOBAL
                 global_result_buffer.append(index)

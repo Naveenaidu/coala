@@ -73,7 +73,8 @@ class ApplyPatchAction(ResultAction):
                                      all_nl_sections=all_nl_sections)
                   update_nl_file_dict(nl_file_dict[filename], 
                                       original_file_dict[filename], diff.modified)
-                  print(nl_file_dict)
+                  from coalib.nestedlib.NlCore import print_nl_sections
+                  print("APPLY PATCH NL SECTIONS: ", print_nl_sections(nl_sections))
 
             if diff.delete or diff.rename:
                 if diff.rename != pre_patch_filename and isfile(
