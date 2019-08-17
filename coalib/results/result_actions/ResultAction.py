@@ -67,7 +67,8 @@ class ResultAction:
                                    information.
         :return:                   The modified file_diff_dict.
         """
-        if(section.get('handle_nested')):
+        nested_lang = False
+        if(section.get('handle_nested',False)):
           nested_lang = True
         params = self.get_metadata().create_params_from_section(section)
         return self.apply(result, original_file_dict, file_diff_dict,

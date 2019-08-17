@@ -557,14 +557,13 @@ def yield_ignore_ranges(file_dict):
             # `# start nl section` marks the beginning of a nl_section.
             # `# end nl section` marks the end of a nl_section
             # Note: These position markers have been added by the Nl Core
-            # The user need not/should not add these. 
-            """             
+            # The user need not/should not add these.   
+             
             elif 'ection' in line:
                 line = line.lower()
                 print(line,"\n")
-                if '# start nl section:' in line or '# end nl section:' in line:
+                if 'start nl section: ' in line or 'end nl section: ' in line:
                     start = line_number
-                    bears = []
                     stop_ignoring = True
                     if start:
                         yield (bears,
@@ -574,8 +573,8 @@ def yield_ignore_ranges(file_dict):
                                    1,
                                    line_number,
                                    len(file[line_number-1])))
-            """
-
+            
+            
         if stop_ignoring is False and start is not None:
             yield (bears,
                    SourceRange.from_values(filename,
@@ -867,6 +866,7 @@ def execute_section(section,
     # applied patches by the user. Unlike the normal execution mode of coala
     # the applied patches are not written in a file, rather they are written/
     # updated in the nl_file_dict.
+    nl_file_dict={}
     if section.get('handle_nested', False):
         nl_file_dict = deepcopy(arg_dict['file_dict'])
         for file in nl_file_dict:
