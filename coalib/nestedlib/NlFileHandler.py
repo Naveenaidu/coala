@@ -68,24 +68,31 @@ def get_line_list(nl_sections, orig_file_path):
             # If the section contains only one line.
             # This case generally happens for mixed lang line
             if (line_nr == start_line and line_nr == end_line):
-                # section_content stores the part of the line that belongs to
-                # the section.
-                section_content = file[line_nr-1][start_column-1:end_column]
+                
+                # If column is not mentioned, then it means that the entire line
+                # is present in the section.
+                if (not end_column) or (not start_column):
+                    line_list[line_nr-1] = orig_line
 
-                if(start_column-1 > 0) and (end_column < end_orig_line):
-                    line_list[line_nr-1] = (line[0:start_column-1] +
-                                            section_content +
-                                            line[end_column:end_orig_line])
-
-                elif(start_column-1 == 0) and (end_column < end_orig_line):
-                    line_list[line_nr-1] = (section_content +
-                                            line[end_column:end_orig_line])
-
-                elif(start_column-1 > 0) and (end_column == end_orig_line):
-                    line_list[line_nr-1] = (line[0:start_column-1] +
-                                            section_content)
                 else:
-                    line_list[line_nr-1] = section_content
+                    # section_content stores the part of the line that belongs 
+                    # to the section.
+                    section_content = file[line_nr-1][start_column-1:end_column]
+
+                    if(start_column-1 > 0) and (end_column < end_orig_line):
+                        line_list[line_nr-1] = (line[0:start_column-1] +
+                                                section_content +
+                                                line[end_column:end_orig_line])
+
+                    elif(start_column-1 == 0) and (end_column < end_orig_line):
+                        line_list[line_nr-1] = (section_content +
+                                                line[end_column:end_orig_line])
+
+                    elif(start_column-1 > 0) and (end_column == end_orig_line):
+                        line_list[line_nr-1] = (line[0:start_column-1] +
+                                                section_content)
+                    else:
+                        line_list[line_nr-1] = section_content
 
             elif (line_nr == start_line):
                     line_list[line_nr-1] = orig_line
@@ -152,7 +159,7 @@ def is_mixed_lang_section(all_nl_sections, nl_section_to_check):
 
     return False,0
 
-def get_preprocess_nl_sections(all_nl_sections, parser):
+def get_preprocessed_nl_sections(all_nl_sections, parser):
     """
     Preprocess the nl_sections.
     
@@ -187,9 +194,10 @@ def get_preprocess_nl_sections(all_nl_sections, parser):
     # For eg: In a combination of Python and Jinja, we mark the mixed lang
     # nl_sections with jinja2 since Jinja2Bear can lint through them
     parser_name = parser.__class__.__name__
+    mixed_lang = ""
     for parser_mixed_lang_dict in PARSER_MIXED_LINE_COMB:
         for parser, lang in parser_mixed_lang_dict.items():
-            if parser_name.lower() == parser:
+            if parser_name.lower() == parser.lower():
                 mixed_lang = lang
                 break
 
@@ -200,10 +208,10 @@ def get_preprocess_nl_sections(all_nl_sections, parser):
     while(index < len(all_nl_sections)):
         
         nl_section = all_nl_sections[index]
-        mixed_lang,num_mixed_nl_sections  = is_mixed_lang_section(
+        mixed_lang_section,num_mixed_nl_sections  = is_mixed_lang_section(
                                                   all_nl_sections[index:], 
                                                   nl_section_to_check=nl_section)
-        if mixed_lang:
+        if mixed_lang_section:
             mixed_nl_section = deepcopy(nl_section)
             mixed_nl_section.start.column = None
             mixed_nl_section.end.column = None
@@ -231,9 +239,75 @@ def get_preprocess_nl_sections(all_nl_sections, parser):
     return preprocess_nl_sections
 
 
+def preprocess_nl_line_list(nl_sections, lines_list):
+    """
+    Add position markers to the line list to indicate the `start` and `end` of
+    a Nested language section. 
+    This helps while retrieving the section from the linted file.
+
+    For eg: Let's assume the following snippet is from a segregated Pyhton temp 
+    file from a Python-Jinja nested original file.
+    file
+
+    The following example:
+    ```
+    def (hello):
+        print("Thanos ROCKS!!")
 
 
+    print("Next nl_section starts")
+    ```    
 
+    Assume the empty lines to be the lines where jinja2 content was present.
+
+    After preprocessing the above lines looks like:
+    ```
+    # Start nl section 1
+    def (hello):
+        print("Thanos ROCKS!!")
+    # End nl section 1
+
+    
+    # Start nl section 2
+    print("Next nl_section starts")
+    # End nl section 2
+    ```
+    We will also include the section number/index into the marker string.
+    This helps while reassembling.
+    Note that the lines where the nl section position markers are present would
+    be ignored by coala.(Refer the ignore_ranges in process/Processing.py).
+    This would remove the worry of they being linted and affecting the actual
+    code.
+    """
+    start_marker_prefix = "# Start Nl Section: "
+    end_marker_prefix = "# End Nl Section: "
+
+    # Store the count of number of lines have been added.
+    added_lines = 0
+
+    for nl_section in nl_sections:
+        index = nl_section.index
+
+        # Insert the start position marker for the nl section
+        start_pos = nl_section.start.line - 1 
+        start_pos_marker = start_pos + added_lines
+        start_marker = start_marker_prefix + str(index)
+        lines_list.insert(start_pos_marker, start_marker)
+        added_lines+=1
+        # linted_start maintains the position of the nl_section before it goes
+        # to the bears
+        nl_section.linted_start.line += added_lines
+
+        # Insert the end position marker for the nl section
+        end_pos = nl_section.end.line - 1
+        end_pos_marker = (end_pos  + added_lines) + 1
+        end_marker = end_marker_prefix + str(index)
+        lines_list.insert(end_pos_marker, end_marker)
+        nl_section.linted_end.line += added_lines
+        added_lines += 1
+
+
+    return lines_list
 
 
 def get_nl_file_dict(orig_file_path, temp_file_name, lang, parser):
@@ -280,9 +354,11 @@ def get_nl_file_dict(orig_file_path, temp_file_name, lang, parser):
     # ENHANCEMENT: Maybe instead of making parser parse through the file for
     # every nested language. We can store it somehow?
     all_nl_sections = parser.parse(orig_file_path)
-    #all_nl_sections = get_preprocess_nl_sections(all_nl_sections, parser)
-    nl_sections = get_nl_sections(all_nl_sections, lang)
+    preprocessed_nl_sections = get_preprocessed_nl_sections(all_nl_sections, 
+                                                            parser)
+    nl_sections = get_nl_sections(preprocessed_nl_sections, lang)
     line_list = get_line_list(nl_sections, orig_file_path)
-    line_tuple = beautify_line_list(line_list)
+    preprocessed_nl_line_list = preprocess_nl_line_list(nl_sections, line_list)
+    line_tuple = beautify_line_list(preprocessed_nl_line_list)
     file_dict = {temp_file_name: line_tuple}
     return file_dict
