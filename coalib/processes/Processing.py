@@ -565,6 +565,7 @@ def yield_ignore_ranges(file_dict):
                 if 'start nl section: ' in line or 'end nl section: ' in line:
                     start = line_number
                     stop_ignoring = True
+                    bears = []
                     if start:
                         yield (bears,
                                SourceRange.from_values(
