@@ -536,6 +536,8 @@ def yield_ignore_ranges(file_dict):
                                    line_number,
                                    len(file[line_number-1])))
 
+
+
                 else:
                     for ignore_stmt in ['ignore ', 'noqa ', 'noqa']:
                         if ignore_stmt in line:
@@ -546,6 +548,27 @@ def yield_ignore_ranges(file_dict):
                                        line_number, 1,
                                        end_line, len(file[end_line-1])))
                             break
+
+            # Ignore the lines which contains `# start nl section` or 
+            # `# end nl section`.
+            # `# start nl section` marks the beginning of a nl_section.
+            # `# end nl section` marks the end of a nl_section
+            # Note: These position markers have been added by the Nl Core
+            # The user need not/should not add these.                
+            elif 'ection' in line:
+                if 'start nl section' in line or 'end nl section' in line:
+                    print("Inside start nl section ", str(line_number))
+                    start = line_number
+                    bears = []
+                    stop_ignoring = True
+                    if start:
+                        yield (bears,
+                               SourceRange.from_values(
+                                   filename,
+                                   start,
+                                   1,
+                                   line_number,
+                                   len(file[line_number-1])))
 
         if stop_ignoring is False and start is not None:
             yield (bears,
