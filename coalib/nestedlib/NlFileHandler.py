@@ -239,7 +239,7 @@ def get_preprocessed_nl_sections(all_nl_sections, parser):
     return preprocess_nl_sections
 
 
-def preprocess_nl_line_list(nl_sections, lines_list):
+def preprocess_nl_line_list(nl_sections, lines_list, lang):
     """
     Add position markers to the line list to indicate the `start` and `end` of
     a Nested language section. 
@@ -279,8 +279,9 @@ def preprocess_nl_line_list(nl_sections, lines_list):
     This would remove the worry of they being linted and affecting the actual
     code.
     """
-    start_marker_prefix = "# Start Nl Section: "
-    end_marker_prefix = "# End Nl Section: "
+    if 'python' in lang.lower() or 'jinja2' in lang.lower(): 
+        start_marker_prefix = "# Start Nl Section: "
+        end_marker_prefix = "# End Nl Section: "
 
     # Store the count of number of lines have been added.
     added_lines = 0
@@ -358,7 +359,7 @@ def get_nl_file_dict(orig_file_path, temp_file_name, lang, parser):
                                                             parser)
     nl_sections = get_nl_sections(preprocessed_nl_sections, lang)
     line_list = get_line_list(nl_sections, orig_file_path)
-    preprocessed_nl_line_list = preprocess_nl_line_list(nl_sections, line_list)
+    preprocessed_nl_line_list = preprocess_nl_line_list(nl_sections, line_list, lang)
     line_tuple = beautify_line_list(preprocessed_nl_line_list)
     file_dict = {temp_file_name: line_tuple}
     return file_dict
