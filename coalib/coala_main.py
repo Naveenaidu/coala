@@ -25,7 +25,7 @@ from coalib.misc.CachingUtilities import (
 from coalib.parsing.FilterHelper import (
     apply_filters, collect_filters, InvalidFilterException)
 
-from coalib.nestedlib.NlCore import nested_language
+from coalib.nestedlib.NlCore import nested_language,apply_patches_to_nl_file
 
 
 def do_nothing(*args):
@@ -246,7 +246,10 @@ def run_coala(console_printer=None,
 
         exitcode = exitcode or get_exitcode(exception)
 
-    print("\n ORIG FILE DICT coala-main: \n", file_dicts)
-    print("\n NL FILE DICT coala-main: \n", nl_file_dicts)
+    if nested_language(args=args, arg_list=arg_list, arg_parser=arg_parser):
+        apply_patches_to_nl_file(nl_file_dicts=nl_file_dicts, 
+                                 args=args, 
+                                 arg_list=arg_list,
+                                 sections=sections)
 
     return results, exitcode, file_dicts

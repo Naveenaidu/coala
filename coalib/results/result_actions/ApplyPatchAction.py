@@ -58,13 +58,7 @@ class ApplyPatchAction(ResultAction):
                           encoding=detect_encoding(pre_patch_filename)) as file:
                       file.writelines(diff.modified)
                 else:
-                  print("\nORIGINAL FILE DICT applypatch: \n", original_file_dict )
-                  print("\nDIFF.modified applypatch: \n", diff.modified)
                   nl_file_dict[filename] = diff.modified
-                  print("\nNL FILE DICT applypatch: \n", nl_file_dict)
-                  #update_nl_file_dict(nl_file_dict[filename], 
-                  #                    original_file_dict[filename], 
-                  #                    diff.modified)
 
             if diff.delete or diff.rename:
                 if diff.rename != pre_patch_filename and isfile(

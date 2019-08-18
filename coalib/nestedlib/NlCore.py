@@ -6,8 +6,13 @@ from importlib import import_module
 
 from coalib.parsing.DefaultArgParser import default_arg_parser
 import logging
-
+import os
 from copy import deepcopy
+from coalib.settings.Setting import glob_list,Setting
+import shutil
+from os.path import isfile
+from os import remove
+from coala_utils.FileUtils import detect_encoding
 
 
 # The supported Parser for the language combination
@@ -91,15 +96,15 @@ def print_nl_sections(nl_sections):
 
     return str_nl_section
 
-def get_temp_file_content(nl_file_dict, temp_file_name):
+def get_temp_file_content(nl_file_dicts, temp_file_name):
     """
     Get the temp file dict of temp_file_name from the patched 
-    nl_file_dict.
+    nl_file_dicts.
     
     If you a nested file `test.py` which contains python and jinja as the
     nested language, then the 
 
-    nl_file_dict looks something like this:
+    nl_file_dicts looks something like this:
 
     ```
     {
@@ -118,7 +123,7 @@ def get_temp_file_content(nl_file_dict, temp_file_name):
     }
     ```
     """
-    for nl_coala_section, temp_file in nl_file_dict.items():
+    for nl_coala_section, temp_file in nl_file_dicts.items():
         for filename, file_content in temp_file.items():
             if temp_file_name == filename:
                 return file_content
@@ -153,7 +158,7 @@ def remove_position_markers(temp_file_content):
 
     return section_index_lines_dict
 
-def get_orig_file_dict(nl_file_dict, nl_file_info_dict):
+def get_orig_file_dict(nl_file_dicts, nl_file_info_dict):
     """
     Generate the file dict for every original file where we have 
     section_index as the key and the content on the line as the value.
@@ -178,7 +183,7 @@ def get_orig_file_dict(nl_file_dict, nl_file_info_dict):
 
     for orig_file, temp_file_info in nl_file_info_dict.items():
         for lang, temp_filename in temp_file_info.items():
-            temp_file_content = get_temp_file_content(nl_file_dict, 
+            temp_file_content = get_temp_file_content(nl_file_dicts, 
                                                       temp_filename)
 
             # PostProcess the lines to remove the position markers
@@ -194,9 +199,59 @@ def get_orig_file_dict(nl_file_dict, nl_file_info_dict):
 
     return file_dict
 
+def generate_linted_file_dict(original_file_dict):
+    """
+    Generate a dict with the orig_filename as the key and the value as the 
+    file contents of the file.
 
+    Use the section indexes present in the original_file_dict to assemble
+    all the sections and generate the actual linted file.
+    """
+    linted_file_dict = {}
+    for file, section_line_dict in original_file_dict.items():
+        if not linted_file_dict.get(file):
+            linted_file_dict[file] = []
+        for section_index in sorted(section_line_dict):
+            section_content = section_line_dict[section_index]
+            linted_file_dict[file].extend(section_content)
+        
+    return linted_file_dict
 
-def apply_patches_to_nl_file(nl_file_dict, args=None, nl_info_dict=None):
+def write_patches_to_orig_nl_file(linted_file_dict, sections):
+    """
+    Update the original Nested language file with the patches that the user
+    chose to apply.
+
+    We create a backup with the extension of `.orig` similar to how coala
+    does when it writes the patches to the file.
+    """
+    for filename, patched_filecontent in linted_file_dict.items():
+        orig_file_path = get_original_file_path(sections, filename)
+
+        # Backup original file
+        if isfile(orig_file_path):
+            shutil.copy2(orig_file_path,
+                         orig_file_path + '.orig')
+
+        with open(orig_file_path, mode='w',
+                  encoding=detect_encoding(orig_file_path)) as file:
+            file.writelines(patched_filecontent)
+
+    return
+
+def get_original_file_path(sections, filename):
+    """
+    Get the origin of the filename. 
+    Return the path where the file is located.
+    """
+    for section_name in sections:
+        section = sections[section_name]
+        if str(section.get('orig_file_name')) == filename:
+            
+            return glob_list(section.get('orig_file_name', ''))[0]
+
+def apply_patches_to_nl_file(nl_file_dicts, args=None, arg_list=None,
+                             nl_info_dict=None, sections=None):
     """
     Write the accepted patches into the original nested language file.
 
@@ -217,16 +272,19 @@ def apply_patches_to_nl_file(nl_file_dict, args=None, nl_info_dict=None):
                                     }   
                     }    
     """
+    if args is None:
+        arg_parser = default_arg_parser() if arg_parser is None else arg_parser
+        args = arg_parser.parse_args(arg_list)
+
     if not nl_info_dict:
-        nl_info_dict = generate_arg_list(args)
+        arg_list, nl_info_dict = generate_arg_list(args)
     nl_file_info_dict = nl_info_dict['nl_file_info']
 
-    original_file_dict = get_orig_file_dict(nl_file_dict,
+    original_file_dict = get_orig_file_dict(nl_file_dicts,
                                             nl_file_info_dict)
+    linted_file_dict = generate_linted_file_dict(original_file_dict)
+    write_patches_to_orig_nl_file(linted_file_dict, sections)
 
-    return original_file_dict
-
-    
 
 
 

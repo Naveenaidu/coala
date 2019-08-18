@@ -419,7 +419,8 @@ def print_bears_formatted(bears, format=None):
 def print_affected_files(console_printer,
                          log_printer,
                          result,
-                         file_dict):
+                         file_dict,
+                         nl_file_dict=None):
     """
     Prints all the affected files and affected lines within them.
 
@@ -429,6 +430,7 @@ def print_affected_files(console_printer,
     :param file_dict:       A dictionary containing all files with filename as
                             key.
     """
+    print(not nl_file_dict)
     if len(result.affected_code) == 0:
         console_printer.print('\n' + STR_PROJECT_WIDE,
                               color=FILE_NAME_COLOR)
@@ -437,10 +439,14 @@ def print_affected_files(console_printer,
             if (
                     sourcerange.file is not None and
                     sourcerange.file not in file_dict):
-                logging.warning('The context for the result ({}) cannot '
-                                'be printed because it refers to a file '
-                                "that doesn't seem to exist ({})"
-                                '.'.format(result, sourcerange.file))
+                # Print the warning message only when file is not found in normal
+                # coala mode. In Nested Language mode, physical files does not
+                # exist
+                if not nl_file_dict:
+                    logging.warning('The context for the result ({}) cannot '
+                                    'be printed because it refers to a file '
+                                    "that doesn't seem to exist ({})"
+                                    '.'.format(result, sourcerange.file))
             else:
                 print_affected_lines(console_printer,
                                      file_dict,
@@ -511,7 +517,8 @@ def print_results(log_printer,
         print_affected_files(console_printer,
                              None,
                              result,
-                             file_dict)
+                             file_dict,
+                             nl_file_dict=nl_file_dict)
 
         print_result(console_printer,
                      section,

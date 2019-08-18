@@ -279,8 +279,8 @@ def preprocess_nl_line_list(nl_sections, lines_list):
     This would remove the worry of they being linted and affecting the actual
     code.
     """
-    start_marker_prefix = "!!! Start Nl Section: "
-    end_marker_prefix = "!!! End Nl Section: "
+    start_marker_prefix = "# Start Nl Section: "
+    end_marker_prefix = "# End Nl Section: "
 
     # Store the count of number of lines have been added.
     added_lines = 0

@@ -558,7 +558,7 @@ def yield_ignore_ranges(file_dict):
             # `# end nl section` marks the end of a nl_section
             # Note: These position markers have been added by the Nl Core
             # The user need not/should not add these.   
-             
+            """
             elif 'ection' in line:
                 line = line.lower()
                 if 'start nl section: ' in line or 'end nl section: ' in line:
@@ -573,7 +573,7 @@ def yield_ignore_ranges(file_dict):
                                    1,
                                    line_number,
                                    len(file[line_number-1])))
-            
+            """
             
         if stop_ignoring is False and start is not None:
             yield (bears,
