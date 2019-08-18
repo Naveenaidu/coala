@@ -279,6 +279,8 @@ def preprocess_nl_line_list(nl_sections, lines_list, lang):
     This would remove the worry of they being linted and affecting the actual
     code.
     """
+
+    # Add the prefix string according to the language combination
     if 'python' in lang.lower() or 'jinja2' in lang.lower(): 
         start_marker_prefix = "# Start Nl Section: "
         end_marker_prefix = "# End Nl Section: "
