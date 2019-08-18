@@ -7,6 +7,8 @@ from importlib import import_module
 from coalib.parsing.DefaultArgParser import default_arg_parser
 import logging
 
+from copy import deepcopy
+
 
 # The supported Parser for the language combination
 PARSER_LANG_COMB = [{'PyJinjaParser': {'python', 'jinja2'}}]
@@ -89,19 +91,142 @@ def print_nl_sections(nl_sections):
 
     return str_nl_section
 
-def update_nl_file_dict(nl_file_dict, orig_file_dict, diff_modified):
+def get_temp_file_content(nl_file_dict, temp_file_name):
     """
-    Update the nl_file_dict with the patches the user chooses to apply.
-    """
-    patched_lines = list(set(orig_file_dict) - set(diff_modified))
-    for line in patched_lines:
-        index = orig_file_dict.index(line)
-        # Check if the line is present in the patched_lines, if yes, replace
-        # the original_line in nl_file_dict with it.
-        try:
-            nl_file_dict[index] = diff_modified[index]
-        except:
-            # If it's not present, it means that the line is deleted.
-            nl_file_dict.pop(index)
+    Get the temp file dict of temp_file_name from the patched 
+    nl_file_dict.
+    
+    If you a nested file `test.py` which contains python and jinja as the
+    nested language, then the 
 
-    return nl_file_dict
+    nl_file_dict looks something like this:
+
+    ```
+    {
+        'cli_nl_section: test.py_nl_python': 
+            {'test.py_nl_python': ['!!! Start Nl Section: 1\n', '\n', '\n', 
+                                    'def hello():\n', '\n', '\n', 
+                                    '!!! End Nl Section: 1\n', '\n', '\n', 
+                                  ]},  
+
+        'cli_nl_section: test.py_nl_jinja2': 
+            {'test.py_nl_jinja2': ['\n', 
+                                   '!!! Start Nl Section: 2\n', 
+                                   '    {{ x }} asdasd {{ Asd }}\n', 
+                                   '!!! End Nl Section: 2\n', 
+                                   ]},
+    }
+    ```
+    """
+    for nl_coala_section, temp_file in nl_file_dict.items():
+        for filename, file_content in temp_file.items():
+            if temp_file_name == filename:
+                return file_content
+
+def remove_position_markers(temp_file_content):
+    """
+    Remove the position markers from the line.
+
+    Return a dicitionary where the key is the section index and the value
+    is the content of the section index.
+    """
+    section_index_lines_dict = {}
+    section_index = None
+    append_lines = False
+    line_list = []
+
+    for line in temp_file_content:
+        
+        if 'Start Nl Section: ' in line:
+            section_index = int(line.split(": ")[1])
+            append_lines = True
+            continue
+
+        elif 'End Nl Section: ' in line:
+            section_index_lines_dict[section_index] = deepcopy(line_list)
+            append_lines =  False
+            section_index = None
+            line_list.clear()
+
+        if append_lines:
+            line_list.append(line)
+
+    return section_index_lines_dict
+
+def get_orig_file_dict(nl_file_dict, nl_file_info_dict):
+    """
+    Generate the file dict for every original file where we have 
+    section_index as the key and the content on the line as the value.
+
+    We'll get the file_dict of the temporary files of each original file,
+    process the file dict to remove the position markers and then create a
+    new file dictionary, where we store the key as the section index and the
+    content of that section as it's value.
+
+    Something like:
+
+    {'test.py': {
+                    '1': [ 'def hello(): \n' ] ,
+                    '2': [  '\n', '\n'],
+                    '3': [ '    {{ x }} asdasd {{ Asd }}\n ],
+                    '4': [ '{{ x }}\n']
+                }
+    }
+    """
+
+    file_dict = {}
+
+    for orig_file, temp_file_info in nl_file_info_dict.items():
+        for lang, temp_filename in temp_file_info.items():
+            temp_file_content = get_temp_file_content(nl_file_dict, 
+                                                      temp_filename)
+
+            # PostProcess the lines to remove the position markers
+            # Generate a dict which has the key as the section index
+            # and the value as the content of the section. This will
+            # help in assembling.
+            section_index_lines = remove_position_markers(
+                                                    temp_file_content)
+            if not file_dict.get(orig_file):
+                file_dict[orig_file] =  section_index_lines
+            else:
+                file_dict[orig_file].update(section_index_lines)
+
+    return file_dict
+
+
+
+def apply_patches_to_nl_file(nl_file_dict, args=None, nl_info_dict=None):
+    """
+    Write the accepted patches into the original nested language file.
+
+    We assemble the applied patches from all the temporary linted pure 
+    language file and preprocess it to remove the `nl section position` 
+    markers and then write it to the original file. 
+
+    We can use the generate_arg_list function to get more information about
+    the original file and temporary file.
+    'nl_file_info': {   'test.py' : { 
+                                        'python' : 'test.py_nl_python',
+                                        'jinja2' : 'test.py_nl_jinja2'
+                                    },
+
+                        'test2.py': {
+                                        'python' : 'test2.py_nl_python',
+                                        'jinja2' : 'test2.py_nl_jinja2'
+                                    }   
+                    }    
+    """
+    if not nl_info_dict:
+        nl_info_dict = generate_arg_list(args)
+    nl_file_info_dict = nl_info_dict['nl_file_info']
+
+    original_file_dict = get_orig_file_dict(nl_file_dict,
+                                            nl_file_info_dict)
+
+    return original_file_dict
+
+    
+
+
+
