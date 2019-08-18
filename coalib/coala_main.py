@@ -246,4 +246,7 @@ def run_coala(console_printer=None,
 
         exitcode = exitcode or get_exitcode(exception)
 
+    print("\n ORIG FILE DICT coala-main: \n", file_dicts)
+    print("\n NL FILE DICT coala-main: \n", nl_file_dicts)
+
     return results, exitcode, file_dicts

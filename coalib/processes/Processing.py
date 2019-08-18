@@ -561,7 +561,6 @@ def yield_ignore_ranges(file_dict):
              
             elif 'ection' in line:
                 line = line.lower()
-                print(line,"\n")
                 if 'start nl section: ' in line or 'end nl section: ' in line:
                     start = line_number
                     stop_ignoring = True
@@ -584,7 +583,7 @@ def yield_ignore_ranges(file_dict):
                                            len(file),
                                            len(file[-1])))
 
-
+ 
 def get_file_list(results):
     """
     Get the set of files that are affected in the given results.
@@ -665,6 +664,7 @@ def process_queues(processes,
             elif control_elem == CONTROL_ELEMENT.LOCAL:
                 assert local_processes != 0
                 result_files.update(get_file_list(local_result_dict[index]))
+
                 retval, res = print_result(local_result_dict[index],
                                            file_dict,
                                            retval,
@@ -886,7 +886,8 @@ def execute_section(section,
                                console_printer=console_printer,
                                debug=debug,
                                apply_single=apply_single,
-                               debug_bears=debug_bears),
+                               debug_bears=debug_bears,
+                               nl_file_dict=nl_file_dict),
                 arg_dict['local_result_dict'],
                 arg_dict['global_result_dict'],
                 arg_dict['file_dict'],
