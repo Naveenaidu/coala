@@ -1,27 +1,29 @@
 from coalib.nestedlib.parsers.Parser import Parser, create_nl_section, get_file
 import regex as re
 
-
-JINJA_STATEMENT_PATTERN = (
-    r'(?P<open>{%[+-]?)(?P<content>.*?)(?P<close>[+-]?%})')
-JINJA_VAR_PATTERN = (
-    r'(?P<open>{{)(?P<content>.*?)(?P<close>}})')
-JINJA_RE = re.compile(
-    '|'.join([JINJA_STATEMENT_PATTERN, JINJA_VAR_PATTERN]))
-
-APPEND_PREV_SECTION = True
-"""
-APPEND_PREV_SECTION is a boolean variable.
-
-This determines if a new section needs to be created for the current line or
-if it can be appended to the previous nl_sections.
-
-This is needed because we do not want to mix the contents from a mixed lang
-line and a pure line. This helps in better maintainability of nl_sections.
-"""
+# `regex` module is used instead of `re` since `re` does not have the
+# capability to compile regex statements that have the same group names.
 
 
 class PyJinjaParser(Parser):
+
+    JINJA_STATEMENT_PATTERN = (
+        r'(?P<open>{%[+-]?)(?P<content>.*?)(?P<close>[+-]?%})')
+    JINJA_VAR_PATTERN = (
+        r'(?P<open>{{)(?P<content>.*?)(?P<close>}})')
+    JINJA_RE = re.compile(
+        '|'.join([JINJA_STATEMENT_PATTERN, JINJA_VAR_PATTERN]))
+
+    append_prev_section = True
+    """
+    append_prev_section is a boolean variable.
+
+    This determines if a new section needs to be created for the current line or
+    if it can be appended to the previous nl_sections.
+
+    This is needed because we do not want to mix the contents from a mixed lang
+    line and a pure line. This helps in better maintainability of nl_sections.
+    """
 
     def new_nl_section(self, file, language, nl_sections=None, start_line=None,
                        start_column=None, end_line=None, end_column=None):
@@ -112,11 +114,10 @@ class PyJinjaParser(Parser):
         :param end_column:   The column number where the Nested Language Section
                              starts.
         """
-        global APPEND_PREV_SECTION
         prev_nl_section = nl_sections[-1] if nl_sections else None
         if((not prev_nl_section or
                 not (prev_nl_section.language == language))
-                or not APPEND_PREV_SECTION):
+                or not self.append_prev_section):
             """
             Create a new nl_section if there are no nl_section present
             or if the language of the previous section do not match
@@ -130,7 +131,7 @@ class PyJinjaParser(Parser):
                                               end_line=line_number,
                                               end_column=end_column)
 
-            APPEND_PREV_SECTION = True
+            self.append_prev_section = True
         else:
             """
             If the language of pervious section and the current line are
@@ -139,17 +140,17 @@ class PyJinjaParser(Parser):
             nl section
             """
             nl_sections = self.update_nl_section(nl_sections, line_number,
-                                                 len(line))
+                                                 len(line)-1)
         return nl_sections
 
     def check_pure_jinja_line(self, line):
         """
         Check if the line is pure Jinja.
 
-        Update the values of APPEND_PREV_SECTION and PURE_JINJA_LINE
-        accordingly. To check if a line is pure jinja, check if the content
+        Update the values of self.append_prev_section and PURE_JINJA_LINE
+        accordingly. To check if a line is pure jinja2, check if the content
         before and after the match object is white space. If it is, then it is
-        purely jinja
+        purely jinja2
 
         :param line:         The current line.
         """
@@ -157,8 +158,8 @@ class PyJinjaParser(Parser):
 
         start_column = 0
         end_column = len(line)-1
-        match = JINJA_RE.search(line)
-        num_jinja_elem = len(re.findall(JINJA_RE, line))
+        match = self.JINJA_RE.search(line)
+        num_jinja_elem = len(re.findall(self.JINJA_RE, line))
 
         if (num_jinja_elem > 1):
             return pure_jinja_line
@@ -200,10 +201,10 @@ class PyJinjaParser(Parser):
         >> "y = {{ var }} if x > 40 else {{ var2 }}"
         >> "{% set x = thanos %} print("He rocks")"
 
-        Also, due to the way parser works it detects a pure jinja line with
+        Also, due to the way parser works it detects a pure jinja2 line with
         white spaces infront of it as a mixed language line. In order to
         overcome this we check if the characters before the first match of the
-        jinja element are whitespaces. If it is - we create a pure jinja line
+        jinja2 element are whitespaces. If it is - we create a pure jinja2 line
         section or append it to the previous nl_section if the language is same.
 
         :param file:         The name of the original nested languges file.
@@ -224,7 +225,7 @@ class PyJinjaParser(Parser):
             nl_sections = self.pure_line_sections(file=file,
                                                   line=line,
                                                   nl_sections=nl_sections,
-                                                  language='jinja',
+                                                  language='jinja2',
                                                   line_number=line_number,
                                                   start_column=cursor+1,
                                                   end_column=match.end())
@@ -237,11 +238,11 @@ class PyJinjaParser(Parser):
                                               start_line=line_number,
                                               start_column=cursor+1,
                                               end_line=line_number,
-                                              end_column=match.start()+1)
+                                              end_column=match.start())
 
             # Jinja Section
             nl_sections = self.new_nl_section(file=file,
-                                              language='jinja',
+                                              language='jinja2',
                                               nl_sections=nl_sections,
                                               start_line=line_number,
                                               start_column=match.start()+1,
@@ -262,16 +263,16 @@ class PyJinjaParser(Parser):
         :param line_number:  The line number of the current line correspondnig
                              to the original Nested language file.
         """
-        global APPEND_PREV_SECTION
-
         line_number = line_number if (line_number) else 1
 
         start_column = 0
+
+        # len(line) also includes the newline character - hence we subtract one
         end_column = len(line) - 1
 
         # The cursor points to the next character in the line that has to be
         # read. The cursor is needed when we have a mixed language line. This
-        # keeps track of all the jinja elements that have been read on the
+        # keeps track of all the jinja2 elements that have been read on the
         # current line.
         cursor = start_column
 
@@ -283,17 +284,18 @@ class PyJinjaParser(Parser):
             prev_nl_section = nl_sections[-1] if nl_sections else None
             if not prev_nl_section:
                 nl_sections = self.new_nl_section(file=file,
-                                                  language='jinja',
+                                                  language='jinja2',
                                                   nl_sections=nl_sections,
                                                   start_line=line_number,
-                                                  start_column=1)
+                                                  start_column=1,
+                                                  end_column=end_column)
             else:
                 nl_sections = self.update_nl_section(nl_sections, line_number,
                                                      1)
             return nl_sections
 
         # Check if the line has any Jinja elements. If not it's pure Python
-        if not JINJA_RE.search(line):
+        if not self.JINJA_RE.search(line):
             lang_cur_line = 'python'
 
             self.pure_line_sections(file=file,
@@ -322,7 +324,7 @@ class PyJinjaParser(Parser):
 
             >> line = '{{ var }} = print("Bye Bye")'
             >> nl_sections = parse_line(line, nl_sections = [])
-            ['test.py: 1 : jinja  : L1 C1  : L1 C9  : L1 C1  : L1 C9',
+            ['test.py: 1 : jinja2  : L1 C1  : L1 C9  : L1 C1  : L1 C9',
             'test.py: 2 : python : L1 C10 : L1 C28 : L1 C10 : L1 C28'
             ]
             """
@@ -332,7 +334,7 @@ class PyJinjaParser(Parser):
             column and end column of the Jinja Element we make the sections
             accordingly.
             """
-            match_objects = JINJA_RE.finditer(line)
+            match_objects = self.JINJA_RE.finditer(line)
 
             """
             If it's a mixed language line, do not append it to previous
@@ -346,15 +348,15 @@ class PyJinjaParser(Parser):
             pure_jinja_line = self.check_pure_jinja_line(line)
 
             if not pure_jinja_line:
-                APPEND_PREV_SECTION = False
+                self.append_prev_section = False
 
             for match in match_objects:
-                lang_cur_line = 'jinja'
+                lang_cur_line = 'jinja2'
 
                 if(match.start() == cursor and match.end() == end_column):
                     """
                     If the first match object spans the entire line that means
-                    that the line is a Pure jinja line.
+                    that the line is a Pure jinja2 line.
                     Eg:
                     >> line = "{% set x = 0 %}"
                     """
@@ -374,16 +376,16 @@ class PyJinjaParser(Parser):
                     If the Jinja elements starts at the start of line, but it
                     ends at a position less than the end_column of the line.
                     Make a Jinja Section of the element and shift the cursor
-                    to one character after the end of the jinja element/
+                    to one character after the end of the jinja2 element/
 
                     Assume cursor is 0 and end_column is 24. As you see below
-                    the first jinja element starts at cursor i.e 0 but the it
+                    the first jinja2 element starts at cursor i.e 0 but the it
                     end at 14 which is less than the end column.
 
                     >> line = "{% set x = 0 %} x = 40  {{ var1 }}"
                     """
                     nl_sections = self.new_nl_section(file=file,
-                                                      language='jinja',
+                                                      language='jinja2',
                                                       nl_sections=nl_sections,
                                                       start_line=line_number,
                                                       start_column=cursor+1,
@@ -401,10 +403,10 @@ class PyJinjaParser(Parser):
                     collection of spaces or python code.
 
                     If it's spaces then that means that the entire line is pure
-                    jinja and we need to make one section.
+                    jinja2 and we need to make one section.
 
                     Else we make two sections, one for python that includes the
-                    text before the match object and another for jinja.
+                    text before the match object and another for jinja2.
 
                     >> line = "x = 40 {% set x = 0 %}"
 
@@ -423,11 +425,13 @@ class PyJinjaParser(Parser):
 
                 else:
                     """
+                    Check:
+                    if match.start() > cursor and match.end() < end_column.
+
                     The match object starts at a column which is greater than
                     the cursor and end at a column less than the end_column.
 
-                    Check:
-                    if match.start() > cursor and match.end() < end_column
+
 
                     This deals with the Jinja elements present somewhere in the
                     middle of the line.
@@ -446,7 +450,7 @@ class PyJinjaParser(Parser):
 
                     cursor = match.end()
 
-                APPEND_PREV_SECTION = True
+                self.append_prev_section = True
 
             if not cursor == end_column:
                 """
@@ -458,7 +462,7 @@ class PyJinjaParser(Parser):
 
                 There might also be the condition where there are spaces left at
                 the end of the line. If it is present. Then add those to the
-                previous jinja section.
+                previous jinja2 section.
 
                 If we run our parse, the code until above would only have made
                 nl_sections until the {% set y = 10 %}. There was no nl_section
@@ -474,7 +478,7 @@ class PyJinjaParser(Parser):
                     nl_sections = self.update_nl_section(
                                                         nl_sections=nl_sections,
                                                         end_line=line_number,
-                                                        end_column=len(line))
+                                                        end_column=len(line)-1)
 
                 else:
                     nl_sections = self.new_nl_section(file=file,
@@ -483,12 +487,12 @@ class PyJinjaParser(Parser):
                                                       start_line=line_number,
                                                       start_column=cursor+1,
                                                       end_line=line_number,
-                                                      end_column=len(line))
+                                                      end_column=len(line)-1)
 
             # If the present line was not a pure Jinja line, the next line
             # should not be appended to the current line.
             if not pure_jinja_line:
-                APPEND_PREV_SECTION = False
+                self.append_prev_section = False
 
         return nl_sections
 
@@ -516,7 +520,7 @@ class PyJinjaParser(Parser):
         ...                  "{% if x is True %}\\n",
         ...                  "\\t{% set var3 = value3 %}\\n",
         ...                  "{% elif %}\\n",
-        ...                  "\\t\\t{{ var }} = print('Bye Bye')")
+        ...                  "\\t\\t{{ var }} = print('Bye Bye')\\n")
 
         >>> parser = PyJinjaParser()
         >>> nl_sections = parser.make_nl_sections(file_contents, 'test.py')
@@ -525,10 +529,10 @@ class PyJinjaParser(Parser):
         '...test.py: 1: python: L1 C1: L1 C11: L1 C1: L1 C11'
 
         >>> str(nl_sections[1])
-        '...test.py: 2: jinja: L2 C1: L4 C11: L2 C1: L4 C11'
+        '...test.py: 2: jinja2: L2 C1: L4 C10: L2 C1: L4 C10'
 
         >>> str(nl_sections[2])
-        '...test.py: 3: jinja: L5 C1: L5 C11: L5 C1: L5 C11'
+        '...test.py: 3: jinja2: L5 C1: L5 C11: L5 C1: L5 C11'
 
         >>> str(nl_sections[3])
         '...test.py: 4: python: L5 C12: L5 C30: L5 C12: L5 C30'
