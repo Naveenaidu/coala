@@ -81,7 +81,8 @@ class PyJinjaParserTest(unittest.TestCase):
                                                 file=self.test_filename1)
 
         expected_nl_section_1_str = ('.*test-jinja-py.py.jj2.txt' +
-                                     ': 1: jinja2: L5 C1: L5 C13: L5 C1: L5 C13')
+                                     ': 1: jinja2: L5 C1: L5 C13: L5 C1: L5 C13'
+                                     )
 
         expected_nl_section_2_str = (
                                   '.*test-jinja-py.py.jj2.txt' +
@@ -102,7 +103,8 @@ class PyJinjaParserTest(unittest.TestCase):
                                                 file=self.test_filename1)
 
         expected_nl_section_1_str = ('.*test-jinja-py.py.jj2.txt' +
-                                     ': 1: jinja2: L1 C1: L1 C16: L1 C1: L1 C16')
+                                     ': 1: jinja2: L1 C1: L1 C16: L1 C1: L1 C16'
+                                     )
 
         expected_nl_section_2_str = (
                                 '.*test-jinja-py.py.jj2.txt' +
@@ -121,7 +123,8 @@ class PyJinjaParserTest(unittest.TestCase):
                                                 file=self.test_filename1)
 
         expected_nl_section_1_str = ('.*test-jinja-py.py.jj2.txt' +
-                                     ': 1: jinja2: L1 C1: L1 C19: L1 C1: L1 C19')
+                                     ': 1: jinja2: L1 C1: L1 C19: L1 C1: L1 C19'
+                                     )
 
         expected_nl_section_2_str = (
                                 '.*test-jinja-py.py.jj2.txt' +
@@ -159,7 +162,8 @@ class PyJinjaParserTest(unittest.TestCase):
                                                 file=self.test_filename1)
 
         expected_nl_section_1_str = ('.*test-jinja-py.py.jj2.txt' +
-                                     ': 1: jinja2: L1 C1: L1 C16: L1 C1: L1 C16')
+                                     ': 1: jinja2: L1 C1: L1 C16: L1 C1: L1 C16'
+                                     )
 
         expected_nl_section_2_str = (
                                 '.*test-jinja-py.py.jj2.txt' +
@@ -190,7 +194,8 @@ class PyJinjaParserTest(unittest.TestCase):
                                                 file=self.test_filename1)
 
         expected_nl_section_1_str = ('.*test-jinja-py.py.jj2.txt' +
-                                     ': 1: jinja2: L1 C1: L1 C19: L1 C1: L1 C19')
+                                     ': 1: jinja2: L1 C1: L1 C19: L1 C1: L1 C19'
+                                     )
 
         self.assertRegex(str(uut_nl_section[0]), expected_nl_section_1_str)
 
@@ -222,7 +227,8 @@ class PyJinjaParserTest(unittest.TestCase):
                                                 file=self.test_filename1)
 
         expected_nl_section_1_str = ('.*test-jinja-py.py.jj2.txt' +
-                                     ': 1: jinja2: L1 C1: L1 C17: L1 C1: L1 C17')
+                                     ': 1: jinja2: L1 C1: L1 C17: L1 C1: L1 C17'
+                                     )
         self.assertRegex(str(uut_nl_section[0]), expected_nl_section_1_str)
 
     def test_coala_setup_template(self):
