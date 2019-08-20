@@ -251,7 +251,6 @@ def print_result(results,
                                         file_dict,
                                         file_diff_dict,
                                         section)
-
     print_results(None,
                   section,
                   patched_results,
@@ -259,7 +258,7 @@ def print_result(results,
                   file_diff_dict,
                   console_printer,
                   apply_single,
-                  nl_file_dict=nl_file_dict)
+                  nl_file_dict)
     return retval or len(results) > 0, patched_results
 
 
@@ -664,7 +663,6 @@ def process_queues(processes,
             elif control_elem == CONTROL_ELEMENT.LOCAL:
                 assert local_processes != 0
                 result_files.update(get_file_list(local_result_dict[index]))
-
                 retval, res = print_result(local_result_dict[index],
                                            file_dict,
                                            retval,
