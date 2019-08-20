@@ -21,7 +21,8 @@ class ShowAppliedPatchesAction(ResultAction):
               result,
               original_file_dict,
               file_diff_dict,
-              nl_file_dict=None,
+              nl_file_dict = None,
+              nested_lang: bool=False
               ):
         """
         Show Applied (P)atches

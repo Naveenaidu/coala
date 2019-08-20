@@ -37,7 +37,8 @@ class ResultAction:
         """
         return True
 
-    def apply(self, result, original_file_dict, file_diff_dict,**kwargs):
+    def apply(self, result, original_file_dict, file_diff_dict, 
+              nl_file_dict=None, nested_lang=False, **kwargs):
         """
         No description. Something went wrong.
         """
@@ -67,13 +68,23 @@ class ResultAction:
                                    information.
         :return:                   The modified file_diff_dict.
         """
+        params = self.get_metadata().create_params_from_section(section)
         nested_lang = False
         if(section.get('handle_nested',False)):
           nested_lang = True
-        params = self.get_metadata().create_params_from_section(section)
-        return self.apply(result, original_file_dict, file_diff_dict,
+          return self.apply(result, original_file_dict, file_diff_dict,
                           nl_file_dict=nl_file_dict, nested_lang=nested_lang, 
                            **params)
+        else:
+          return self.apply(result, original_file_dict, file_diff_dict, 
+                           **params)
+        
+
+        
+        """
+        return self.apply(result, original_file_dict, file_diff_dict,
+                           **params)
+        """
 
     @classmethod
     def get_metadata(cls):
@@ -88,7 +99,8 @@ class ResultAction:
         """
         data = FunctionMetadata.from_function(
             cls.apply,
-            omit={'self', 'result', 'original_file_dict', 'file_diff_dict'})
+            omit={'self', 'result', 'original_file_dict', 'file_diff_dict',
+                  'nl_file_dict', 'nested_lang'})
         data.name = cls.__name__
 
         return data

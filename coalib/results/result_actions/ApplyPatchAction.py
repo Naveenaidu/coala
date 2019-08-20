@@ -18,9 +18,9 @@ class ApplyPatchAction(ResultAction):
               result,
               original_file_dict,
               file_diff_dict,
+              nl_file_dict = None,
               no_orig: bool = False,
-              nl_file_dict=None,
-              nested_lang=False,
+              nested_lang: bool = False,
               ):
         """
         (A)pply patch

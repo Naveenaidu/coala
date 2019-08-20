@@ -161,6 +161,7 @@ class OpenEditorAction(ResultAction):
         return call_args
 
     def apply(self, result, original_file_dict, file_diff_dict, editor: str):
+
         """
         (O)pen file
 
