@@ -83,19 +83,6 @@ def nested_language(args=None, arg_list=None, arg_parser=None):
 
     return handle_nested
 
-def print_nl_sections(nl_sections):
-    """
-    Print the str repersenation of the
-    """
-    str_nl_section = ""
-    for nl_section in nl_sections:
-        # For debugging let's remove the file name
-        #str_nl_section.append(str(nl_section))
-        str_section = str(nl_section)
-        str_nl_section += str_section + "\n"
-
-    return str_nl_section
-
 def get_temp_file_content(nl_file_dicts, temp_file_name):
     """
     Get the temp file dict of temp_file_name from the patched 
@@ -123,10 +110,13 @@ def get_temp_file_content(nl_file_dicts, temp_file_name):
     }
     ```
     """
+    temp_file_content = {}
     for nl_coala_section, temp_file in nl_file_dicts.items():
         for filename, file_content in temp_file.items():
             if temp_file_name == filename:
-                return file_content
+                temp_file_content = file_content
+                break
+    return temp_file_content
 
 def remove_position_markers(temp_file_content):
     """
@@ -134,6 +124,28 @@ def remove_position_markers(temp_file_content):
 
     Return a dicitionary where the key is the section index and the value
     is the content of the section index.
+
+    We we encounter a `Start Nl Section` string, we extract the index from
+    it and keep appending all the lines into a lines_list until we reach the
+    `End Nl Section` string of the same index. Then we make a dictionary 
+    with the key as the section index and the value as the list of lines
+    that were present inside the section.
+
+    For eg:
+
+    Input -
+    ```
+    ['!!! Start Nl Section: 1\n', '\n', '\n', 
+    'def hello():\n', 
+    '!!! End Nl Section: 1\n', '\n',
+    ]
+    ```
+
+    The output we receive is:
+    ```
+    {1: ['\n', '\n', def hello():\n', '\n']}
+    ```
+
     """
     section_index_lines_dict = {}
     section_index = None
@@ -158,10 +170,12 @@ def remove_position_markers(temp_file_content):
 
     return section_index_lines_dict
 
-def get_orig_file_dict(nl_file_dicts, nl_file_info_dict):
+def get_linted_file_sections(nl_file_dicts, nl_file_info_dict):
     """
-    Generate the file dict for every original file where we have 
-    section_index as the key and the content on the line as the value.
+    Generate the linted file dict for every original file.
+
+    This dictionary contains section_index as the key and the content
+    in those sections as the value. 
 
     We'll get the file_dict of the temporary files of each original file,
     process the file dict to remove the position markers and then create a
@@ -171,15 +185,27 @@ def get_orig_file_dict(nl_file_dicts, nl_file_info_dict):
     Something like:
 
     {'test.py': {
-                    '1': [ 'def hello(): \n' ] ,
-                    '2': [  '\n', '\n'],
-                    '3': [ '    {{ x }} asdasd {{ Asd }}\n ],
-                    '4': [ '{{ x }}\n']
+                    1: [ 'def hello(): \n' ] ,
+                    2: [  '\n', '\n'],
+                    3: [ '    {{ x }} asdasd {{ Asd }}\n ],
+                    4: [ '{{ x }}\n']
                 }
     }
+
+
+    nl_info_dict = { 'test.py' : { 
+                                        'python' : 'test.py_nl_python',
+                                        'jinja2' : 'test.py_nl_jinja2'
+                                 },
+
+                      'test2.py': {
+                                        'python' : 'test2.py_nl_python',
+                                        'jinja2' : 'test2.py_nl_jinja2'
+                                  }   
+                   }
     """
 
-    file_dict = {}
+    file_dicts = {}
 
     for orig_file, temp_file_info in nl_file_info_dict.items():
         for lang, temp_filename in temp_file_info.items():
@@ -192,25 +218,57 @@ def get_orig_file_dict(nl_file_dicts, nl_file_info_dict):
             # help in assembling.
             section_index_lines = remove_position_markers(
                                                     temp_file_content)
-            if not file_dict.get(orig_file):
-                file_dict[orig_file] =  section_index_lines
+            if not file_dicts.get(orig_file):
+                file_dicts[orig_file] =  section_index_lines
             else:
-                file_dict[orig_file].update(section_index_lines)
+                file_dicts[orig_file].update(section_index_lines)
 
-    return file_dict
+    return file_dicts
 
-def generate_linted_file_dict(original_file_dict):
+def generate_linted_file_dict(nl_file_dicts, nl_file_info_dict):
     """
     Generate a dict with the orig_filename as the key and the value as the 
     file contents of the file.
 
     Use the section indexes present in the original_file_dict to assemble
     all the sections and generate the actual linted file.
+
+    Linted file looks like:
+    {'test.py': {
+                    1: [ 'def hello(): \n' ] ,
+                    2: [  '\n', '\n'],
+                    3: [ '    {{ x }} asdasd {{ Asd }}\n ],
+                    4: [ '{{ x }}\n']
+                },
+     'test2.py':{
+                    1: ['print("Hello Homosapiens")'],
+                    2: ['{% set x = {{var}} %}']
+                }
+    }
+
+    The sections are sorted according to their index and their content
+    are combined to make one list. This list will then be written into a file.
+
+    {'test.py':  [ 'def hello(): \n',
+                   '\n', 
+                   '\n', 
+                   '    {{ x }} asdasd {{ Asd }}\n ,
+                   '{{ x }}\n'
+                 ], 
+
+     'test2.py': [ 'print("Hello Homosapiens")',
+                   '{% set x = {{var}} %}' 
+                 ]
+                
+    }
+
     """
     linted_file_dict = {}
-    for file, section_line_dict in original_file_dict.items():
-        if not linted_file_dict.get(file):
-            linted_file_dict[file] = []
+    linted_file_sections = get_linted_file_sections(nl_file_dicts, nl_file_info_dict)
+    for file, section_line_dict in linted_file_sections.items():
+        # Create an entry for the file, if it's not already present.
+        # Useful when we pass multiple files in `--files` argument.
+        linted_file_dict[file] = []
         for section_index in sorted(section_line_dict):
             section_content = section_line_dict[section_index]
             linted_file_dict[file].extend(section_content)
@@ -228,10 +286,9 @@ def write_patches_to_orig_nl_file(linted_file_dict, sections):
     for filename, patched_filecontent in linted_file_dict.items():
         orig_file_path = get_original_file_path(sections, filename)
 
+        print(orig_file_path)
         # Backup original file
-        if isfile(orig_file_path):
-            shutil.copy2(orig_file_path,
-                         orig_file_path + '.orig')
+        shutil.copy2(orig_file_path, orig_file_path + '.orig')
 
         with open(orig_file_path, mode='w',
                   encoding=detect_encoding(orig_file_path)) as file:
@@ -244,15 +301,20 @@ def get_original_file_path(sections, filename):
     Get the origin of the filename. 
     Return the path where the file is located.
     """
+    file_path = ''
     for section_name in sections:
         section = sections[section_name]
         if str(section.get('orig_file_name')) == filename:
-            
-            return glob_list(section.get('orig_file_name', ''))[0]
+            file_path = glob_list(section.get('orig_file_name', ''))[0]
+            break
+    return file_path
 
-def apply_patches_to_nl_file(nl_file_dicts, args=None, arg_list=None,
-                             nl_info_dict=None, sections=None):
+def apply_patches_to_nl_file(nl_file_dicts, sections, args=None, 
+                             arg_list=None, nl_info_dict=None,  
+                             arg_parser=None):
     """
+    :param nl_file_dicts: The linted nested language file dict
+
     Write the accepted patches into the original nested language file.
 
     We assemble the applied patches from all the temporary linted pure 
@@ -272,6 +334,7 @@ def apply_patches_to_nl_file(nl_file_dicts, args=None, arg_list=None,
                                     }   
                     }    
     """
+
     if args is None:
         arg_parser = default_arg_parser() if arg_parser is None else arg_parser
         args = arg_parser.parse_args(arg_list)
@@ -280,10 +343,11 @@ def apply_patches_to_nl_file(nl_file_dicts, args=None, arg_list=None,
         arg_list, nl_info_dict = generate_arg_list(args)
     nl_file_info_dict = nl_info_dict['nl_file_info']
 
-    original_file_dict = get_orig_file_dict(nl_file_dicts,
+    linted_file_dict = generate_linted_file_dict(nl_file_dicts,
                                             nl_file_info_dict)
-    linted_file_dict = generate_linted_file_dict(original_file_dict)
     write_patches_to_orig_nl_file(linted_file_dict, sections)
+
+    return linted_file_dict
 
 
 
