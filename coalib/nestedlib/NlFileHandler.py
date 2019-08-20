@@ -1,5 +1,6 @@
 from coalib.io.File import File
 from copy import deepcopy
+import logging
 
 # This is used to combine the nl_sections of a mixed language line produced by
 # a parser  into a single nl_section.
@@ -201,6 +202,10 @@ def get_preprocessed_nl_sections(all_nl_sections, parser):
                 mixed_lang = lang
                 break
 
+    if not mixed_lang:
+        logging.error("No PARSER_MIXED_LINE_COMB exist")
+        raise SystemExit(2)
+
     preprocessed_nl_section_index = 1
     preprocess_nl_sections = []
     index = 0
@@ -280,10 +285,12 @@ def preprocess_nl_line_list(nl_sections, lines_list, lang):
     code.
     """
 
-    # Add the prefix string according to the language combination
-    if 'python' in lang.lower() or 'jinja2' in lang.lower(): 
-        start_marker_prefix = "# Start Nl Section: "
-        end_marker_prefix = "# End Nl Section: "
+    # Add the prefix string according to the language combination.
+    # For now this string works for the combination of Python and Jinja
+    # When more language support is added, You can use `if` statements to
+    # use the proper prefix 
+    start_marker_prefix = "# Start Nl Section: "
+    end_marker_prefix = "# End Nl Section: "
 
     # Store the count of number of lines have been added.
     added_lines = 0

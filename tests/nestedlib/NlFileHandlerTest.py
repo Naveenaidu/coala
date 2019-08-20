@@ -6,19 +6,31 @@ from coalib.nestedlib.NlFileHandler import (get_nl_file_dict,
                                             get_nl_sections,
                                             get_line_list, 
                                             beautify_line_list, 
-                                            get_nl_file_dict)
+                                            get_nl_file_dict,
+                                            get_preprocessed_nl_sections)
 from coalib.nestedlib.parsers.PyJinjaParser import PyJinjaParser
+from coalib.nestedlib.parsers.Parser import (Parser, 
+                                             create_nl_section, 
+                                             get_file)
+
 
 
 TEST_FILE_DIR = os.path.join(os.path.split(__file__)[0],
                              'parsers/file_test_files')
+class DummyParser(Parser):
+    """
+    Dummy Parser
+    """
+    def parse(self, filename):
+        return None
 
 
 class NlFileHandler(unittest.TestCase):
 
+
     def setUp(self):
         self.file_test_dir = TEST_FILE_DIR
-        self.test_filename1 = 'test-jinja-py.py.jj2.txt'
+        self.test_filename1 = 'test-jinja-py.py.jj2.txt'        
         self.test_file1_path = os.path.join(self.file_test_dir,
                                             self.test_filename1)
         self.abs_test_file1_path = abspath(self.test_file1_path)
@@ -58,8 +70,27 @@ class NlFileHandler(unittest.TestCase):
                               '{% elif %}\n',
                               '    {{ var }}                   '
                               ]
-
         self.assertEqual(uut_line_list, expected_line_list)
+
+
+        test_filename2 = 'test-jinja2-py.jj2.txt'
+        
+        test_file2_path = os.path.join(self.file_test_dir,
+                                      test_filename2)
+        abs_test_file2_path = abspath(test_file2_path)
+        uut_lang = 'jinja2'
+        uut_all_nl_sections = self.parser.parse(abs_test_file2_path)
+        uut_nl_sections = get_nl_sections(uut_all_nl_sections, uut_lang)
+        uut_line_list = get_line_list(
+            uut_nl_sections, abs_test_file2_path)
+        expected_line_list = [' ',
+                              '{% if x is True %}\n',
+                              '    {% set var3 = value3 %}\n',
+                              '    \n',
+                              '{% elif %}\n',
+                           '    {{ var }}                    {{ y }}    {{ x }}'
+                              ]
+        self.assertEqual(uut_line_list, expected_line_list)   
 
     def test_beautify_line_list(self):
 
@@ -110,6 +141,13 @@ class NlFileHandler(unittest.TestCase):
         }
         self.maxDiff = None
         self.assertEqual(uut_file_dict, expected_file_dict)
+
+    def test_get_preprocessed_nl_sections(self):
+        uut_all_nl_sections = self.all_nl_sections
+        uut_parser = DummyParser()
+        with self.assertRaises(SystemExit) as cm:
+            preprocessed_nl_sections = get_preprocessed_nl_sections(
+                uut_all_nl_sections, uut_parser)
 
     def test_coala_setup_template(self):
         """
@@ -677,3 +715,6 @@ class NlFileHandler(unittest.TestCase):
                            '\n')
 
         self.assertEqual(temp_file_dict[uut_temp_file_name], expected_tuple)
+
+if __name__ == '__main__':
+    unittest.main()
