@@ -74,3 +74,120 @@ class NlCoreTest(unittest.TestCase):
         # When --handle-nested is not present
         handle_nested = nested_language(arg_list=[])
         self.assertFalse(handle_nested)
+
+    def test_get_temp_file_content(self):
+        nl_file_dicts = {
+            'cli_nl_section: test.py_nl_python': 
+                {'test.py_nl_python': ['!!! Start Nl Section: 1\n', '\n', '\n', 
+                                        'def hello():\n', '\n', '\n', 
+                                        '!!! End Nl Section: 1\n', '\n', '\n', 
+                                      ]},  
+
+            'cli_nl_section: test.py_nl_jinja2': 
+                {'test.py_nl_jinja2': ['\n', 
+                                       '!!! Start Nl Section: 2\n', 
+                                       '    {{ x }} asdasd {{ Asd }}\n', 
+                                       '!!! End Nl Section: 2\n', 
+                                       ]},
+        }
+
+        uut_temp_file_name = 'test.py_nl_python'
+        expected_file_content = ['!!! Start Nl Section: 1\n', '\n', '\n', 
+                                        'def hello():\n', '\n', '\n', 
+                                        '!!! End Nl Section: 1\n', '\n', '\n', 
+                                ]
+
+        file_content = test_get_temp_file_content(nl_file_dicts, 
+                                                    uut_temp_file_name)
+
+        self.assertEqual(expected_file_content, file_content)
+
+
+    def test_remove_position_markers(self):
+
+        uut_temp_file_contents = ['!!! Start Nl Section: 1\n', 
+                                  '\n', 
+                                  'print("Hello world")\n', 
+                                  'def hello():\n', 
+                                  '\n', 
+                                  '!!! End Nl Section: 1\n', 
+                                  '\n']
+
+        expected_output = { 1 :['\n', 
+                                'print("Hello world")\n', 
+                                'def hello():\n', 
+                                '\n',
+                                '\n']
+                           }
+
+        section_index_lines_dict = remove_position_markers(
+                                            uut_temp_file_content)
+
+        self.assertEqual(expected_output, section_index_lines_dict)
+
+    def test_generate_linted_file_dict(self):
+        linted_temp_nl_file_dicts = {
+            'cli_nl_section: test.py_nl_python': 
+                {'test.py_nl_python': ['!!! Start Nl Section: 1\n', 
+                                       'def hello():\n', 
+                                       '\n', 
+                                       '\n', 
+                                        '!!! End Nl Section: 1\n', 
+                                        '\n', 
+                                        '\n', 
+                                      ]},  
+
+            'cli_nl_section: test.py_nl_jinja2': 
+                {'test.py_nl_jinja2': ['\n', 
+                                       '!!! Start Nl Section: 2\n', 
+                                       '    {{ x }} asdasd {{ Asd }}\n', 
+                                       '!!! End Nl Section: 2\n', 
+                                       ]},
+
+            'cli_nl_section: test2.py_nl_python': 
+                {'test2.py_nl_python': ['!!! Start Nl Section: 1\n',  
+                                       'print("Hello Thanos)\n', 
+                                        '!!! End Nl Section: 1\n', 
+                                      ]},
+
+            'cli_nl_section: test2.py_nl_jinja2': 
+                {'test2.py_nl_jinja2': ['\n',
+                                        '!!! Start Nl Section: 2'  
+                                        '{% set x = {{var}} %}\n', 
+                                        '!!! End Nl Section: 2\n', 
+                                      ]},
+
+        } 
+
+        nl_file_info_dict = { 'test.py' : { 
+                                        'python' : 'test.py_nl_python',
+                                        'jinja2' : 'test.py_nl_jinja2'
+                                         },
+
+                             'test2.py': {
+                                        'python' : 'test2.py_nl_python',
+                                        'jinja2' : 'test2.py_nl_jinja2'
+                                      }   
+                            }
+
+        expected_ouput = {
+                'test.py':  [ 'def hello(): \n',
+                              '\n', 
+                              '\n', 
+                              '    {{ x }} asdasd {{ Asd }}\n' ,
+                            ], 
+
+                'test2.py': [ 'print("Hello Homosapiens")',
+                              '{% set x = {{var}} %}' 
+                            ]
+                
+            }
+
+        linted_file_dict = generate_linted_file_dict(
+                                            linted_temp_nl_file_dicts,
+                                            nl_file_info_dict)
+
+        self.assertEqual(expected_ouput, linted_file_dict)
+
+
+
