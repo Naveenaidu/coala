@@ -459,7 +459,8 @@ def print_results_no_input(log_printer,
                            file_dict,
                            file_diff_dict,
                            console_printer,
-                           apply_single=False):
+                           apply_single=False,
+                           nl_file_dict=None):
     """
     Prints all non interactive results in a section
 
@@ -487,7 +488,8 @@ def print_results_no_input(log_printer,
                      result,
                      file_dict,
                      interactive=False,
-                     apply_single=apply_single)
+                     apply_single=apply_single,
+                     nl_file_dict=nl_file_dict)
 
 
 def print_results(log_printer,
@@ -734,6 +736,18 @@ def try_to_apply_action(action_name,
     :param file_dict:       Dictionary with filename as keys and its contents
                             as values.
     """
+
+    # Ignore the actions that are not yet supported in Nested Language
+    # Mode
+    if(section.get('handle_nested',False) and 
+                isinstance(chosen_action, (OpenEditorAction, GeneratePatchesAction))):
+        exception = ("{} is not yet supported in Nested Language Mode".
+                     format(action_name))
+        logging.error('Failed to execute the action {} with error: {}.'
+                      .format(action_name, exception))
+        failed_actions.add(action_name)
+        return
+
     try:
         chosen_action.apply_from_section(result,
                                          file_dict,
