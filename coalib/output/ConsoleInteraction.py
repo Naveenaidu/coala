@@ -430,19 +430,20 @@ def print_affected_files(console_printer,
     :param file_dict:       A dictionary containing all files with filename as
                             key.
     """
-    print(not nl_file_dict)
+    # Print the file not found warning message only when file is not found 
+    # in normal coala mode.
+    # In Nested Language mode, physical files does not exist
+    if nl_file_dict:
+        return
+
     if len(result.affected_code) == 0:
         console_printer.print('\n' + STR_PROJECT_WIDE,
                               color=FILE_NAME_COLOR)
     else:
         for sourcerange in result.affected_code:
             if (
-                    sourcerange.file is not None and
-                    sourcerange.file not in file_dict):
-                # Print the warning message only when file is not found in normal
-                # coala mode. In Nested Language mode, physical files does not
-                # exist
-                if not nl_file_dict:
+                    (sourcerange.file is not None and
+                    sourcerange.file not in file_dict) ) :
                     logging.warning('The context for the result ({}) cannot '
                                     'be printed because it refers to a file '
                                     "that doesn't seem to exist ({})"
@@ -476,7 +477,7 @@ def print_results_no_input(log_printer,
     :param console_printer: Object to print messages on the console.
     """
     for result in result_list:
-
+        
         print_affected_files(console_printer,
                              None,
                              result,
@@ -529,7 +530,6 @@ def print_results(log_printer,
                      file_dict,
                      apply_single=apply_single,
                      nl_file_dict=nl_file_dict)
-
 
 def print_affected_lines(console_printer, file_dict, sourcerange):
     """
@@ -699,6 +699,7 @@ def choose_action(console_printer, actions, apply_single=False):
             if not choice:
                 actions_desc.append(DoNothingAction().get_metadata().desc)
                 actions_name.append(DoNothingAction().get_metadata().name)
+                
             return (actions_desc, actions_name)
 
 
@@ -739,31 +740,32 @@ def try_to_apply_action(action_name,
 
     # Ignore the actions that are not yet supported in Nested Language
     # Mode
-    if(section.get('handle_nested',False) and 
-                isinstance(chosen_action, (OpenEditorAction, GeneratePatchesAction))):
-        exception = ("{} is not yet supported in Nested Language Mode".
-                     format(action_name))
-        logging.error('Failed to execute the action {} with error: {}.'
-                      .format(action_name, exception))
-        failed_actions.add(action_name)
-        return
+    
 
     try:
-        chosen_action.apply_from_section(result,
-                                         file_dict,
-                                         file_diff_dict,
-                                         section,
-                                         nl_file_dict=nl_file_dict)
-        if not isinstance(chosen_action, DoNothingAction):
-            console_printer.print(
-                format_lines(chosen_action.SUCCESS_MESSAGE, symbol='['),
-                color=SUCCESS_COLOR)
-        applied_actions[action_name] = [copy.copy(result), copy.copy(
-            file_dict),
-                                    copy.copy(file_diff_dict),
-                                    copy.copy(section)]
-        result.set_applied_actions(applied_actions)
-        failed_actions.discard(action_name)
+        if(section.get('handle_nested',False) and 
+                isinstance(chosen_action, (OpenEditorAction, GeneratePatchesAction))):
+            exception = ("{} is not yet supported in Nested Language Mode".
+                         format(action_name))
+            raise Exception(exception)
+
+        else:
+            chosen_action.apply_from_section(result,
+                                             file_dict,
+                                             file_diff_dict,
+                                             section,
+                                             nl_file_dict=nl_file_dict)
+            if not isinstance(chosen_action, DoNothingAction):
+                console_printer.print(
+                    format_lines(chosen_action.SUCCESS_MESSAGE, symbol='['),
+                    color=SUCCESS_COLOR)
+            applied_actions[action_name] = [copy.copy(result), copy.copy(
+                file_dict),
+                                        copy.copy(file_diff_dict),
+                                        copy.copy(section)]
+            result.set_applied_actions(applied_actions)
+            failed_actions.discard(action_name)
+
     except Exception as exception:  # pylint: disable=broad-except
         logging.error('Failed to execute the action {} with error: {}.'
                       .format(action_name, exception))
