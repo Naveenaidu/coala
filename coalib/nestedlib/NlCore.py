@@ -285,8 +285,6 @@ def write_patches_to_orig_nl_file(linted_file_dict, sections):
     """
     for filename, patched_filecontent in linted_file_dict.items():
         orig_file_path = get_original_file_path(sections, filename)
-
-        print(orig_file_path)
         # Backup original file
         shutil.copy2(orig_file_path, orig_file_path + '.orig')
 

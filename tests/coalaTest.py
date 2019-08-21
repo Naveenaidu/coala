@@ -419,10 +419,11 @@ class coalaTest(unittest.TestCase):
                                  'there are no errors')
 
     def test_nested_language_run_coala(self):
-        # If the nested language file is empty
+        # If the nested language file has no error to lint, then the
+        # exit code is zero
         config_path = os.path.abspath(os.path.join(
             os.path.dirname(__file__),
-            'process/section_executor_test_files'))
+            'processes/section_executor_test_files'))
 
         testcode_p_path = os.path.join(config_path,'test.py')
         uut_arg_list=[

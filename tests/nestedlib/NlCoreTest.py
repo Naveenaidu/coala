@@ -14,6 +14,8 @@ from coalib.nestedlib.NlCore import (get_parser,
                                      apply_patches_to_nl_file)
 from coalib.nestedlib.parsers.PyJinjaParser import PyJinjaParser
 from coalib.nestedlib.NlCliParsing import parse_nl_cli
+from coalib.nestedlib.NlInfoExtractor import generate_arg_list
+
 
 
 class NlCoreTest(unittest.TestCase):
@@ -197,49 +199,56 @@ class NlCoreTest(unittest.TestCase):
 
     def test_get_original_file_path(self):
 
-        config_path = os.path.abspath(os.path.join(
-            os.path.dirname(__file__),'../..'
-            ))
-        testcode_p_path1 = os.path.join(config_path,'test.py')
+        config_path = os.path.abspath( os.path.dirname(__file__))
+
+        # When the filename is not present in nl section
         testcode_p_path2 = os.path.join(config_path,'test2.py')
-        files_path = testcode_p_path2 + "," + testcode_p_path1
+        files_path = testcode_p_path2 
 
         uut_arg_list = ['--no-config', '--handle-nested',
                     '--bears=PEP8TestBear,Jinja2TestBear',
                     '--languages=python,jinja2', 
-                    '--files='+files_path,
+                    '--files=test2.py',
                     '--bear-dirs='+self.test_bear_path
                          ]
         uut_args = self.arg_parser.parse_args(uut_arg_list)
-        uut_nl_sections = get_nl_coala_sections(args=self.args)
+        uut_nl_sections = get_nl_coala_sections(uut_args)
         file_path = get_original_file_path(uut_nl_sections, 'test.py')
-
-        expected_file_path = testcode_p_path1
+        expected_file_path = ''
         self.assertEqual(expected_file_path, file_path)
 
-    """
+    
 
     def test_apply_patches_to_nl_file(self):
         # The path for test file
         config_path = os.path.abspath(os.path.join(
             os.path.dirname(__file__),
             'test-files'))
-        testcode_p_path = os.path.join(config_path,'test.py')
+        testcode_p_path = os.path.join(config_path,'test.py.txt')
+
+        section_python_name = ('cli_nl_section: ' + 
+                                    config_path + "/test.py.txt_nl_python")
+        section_jinja2_name = ('cli_nl_section: '+ 
+                                    config_path + "/test.py.txt_nl_jinja2")
+
+        temp_python_file_name = config_path + "/test.py.txt_nl_python"
+        temp_jinja_file_name = config_path + "/test.py.txt_nl_jinja2"
 
         linted_temp_nl_file_dicts = {
-            'cli_nl_section: test.py_nl_python': 
-                    {'test.py_nl_python': ['!!! Start Nl Section: 1\n',  
-                                           'print("Hello Thanos)\n', 
+            section_python_name: 
+                    {temp_python_file_name: ['!!! Start Nl Section: 1\n',  
+                                           'print("Hello Thanos")\n', 
                                             '!!! End Nl Section: 1\n', 
                                           ]},
 
-                'cli_nl_section: test2.py_nl_jinja2': 
-                    {'test.py_nl_jinja2': ['\n',
+            section_jinja2_name: 
+                    {temp_jinja_file_name: ['\n',
                                             '!!! Start Nl Section: 2',  
                                             '{% set x = {{var}} %}\n', 
                                             '!!! End Nl Section: 2\n', 
                                           ]}
             }
+
 
         uut_arg_list = ['--no-config', '--handle-nested',
                     '--bears=PEP8TestBear,Jinja2TestBear',
@@ -249,20 +258,39 @@ class NlCoreTest(unittest.TestCase):
                          ]
 
         uut_args = self.arg_parser.parse_args(uut_arg_list)
-        uut_nl_sections = get_nl_coala_sections(args=self.args)
-        expected_linted_file_dict = {'test.py': 
-                    ['print("Hello Thanos)\n', 
+        uut_nl_sections = get_nl_coala_sections(uut_args)
+
+        expected_linted_file_dict = {testcode_p_path: 
+                    ['print("Hello Thanos")\n', 
                     '{% set x = {{var}} %}\n']}
 
+        # When args and nl_info_dict is None
         linted_file_dict = apply_patches_to_nl_file(
             nl_file_dicts=linted_temp_nl_file_dicts,
             sections = uut_nl_sections,
-            arg_list=uut_arg_list)
+            arg_list=uut_arg_list,
+            args=None,
+            nl_info_dict=None)
 
         self.assertEqual(expected_linted_file_dict,
                          linted_file_dict)
 
-    """
+        # Another tests where args and nl_info_dict is not none
+        uut_args = self.arg_parser.parse_args(uut_arg_list)
+        uut_arg_list, uut_nl_info_dict = generate_arg_list(uut_args)
+
+        linted_file_dict = apply_patches_to_nl_file(
+            nl_file_dicts=linted_temp_nl_file_dicts,
+            sections = uut_nl_sections,
+            args=uut_args,
+            nl_info_dict=uut_nl_info_dict)
+
+        self.assertEqual(expected_linted_file_dict,
+                         linted_file_dict)
 
 
+    
+
+if __name__ == '__main__':
+    unittest.main()
 

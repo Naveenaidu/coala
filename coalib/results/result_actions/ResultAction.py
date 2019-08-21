@@ -73,18 +73,13 @@ class ResultAction:
         if(section.get('handle_nested',False)):
           nested_lang = True
           return self.apply(result, original_file_dict, file_diff_dict,
-                          nl_file_dict=nl_file_dict, nested_lang=nested_lang, 
-                           **params)
+                            nl_file_dict=nl_file_dict, nested_lang=nested_lang, 
+                             **params)
         else:
           return self.apply(result, original_file_dict, file_diff_dict, 
-                           **params)
-        
+                             **params)
 
-        
-        """
-        return self.apply(result, original_file_dict, file_diff_dict,
-                           **params)
-        """
+
 
     @classmethod
     def get_metadata(cls):
