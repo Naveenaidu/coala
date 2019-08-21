@@ -219,6 +219,13 @@ def run_coala(console_printer=None,
             file_dicts[section_name] = section_result[3]
             nl_file_dicts[section_name] = section_result[4]
 
+        if nested_language(args=args, arg_list=arg_list, arg_parser=arg_parser):
+            apply_patches_to_nl_file(nl_file_dicts=nl_file_dicts, 
+                                     args=args, 
+                                     arg_list=arg_list,
+                                     arg_parser=arg_parser,
+                                     sections=sections)
+
         update_settings_db(None, settings_hash)
         if cache:
             cache.write()
@@ -245,11 +252,5 @@ def run_coala(console_printer=None,
                 raise
 
         exitcode = exitcode or get_exitcode(exception)
-
-    if nested_language(args=args, arg_list=arg_list, arg_parser=arg_parser):
-        apply_patches_to_nl_file(nl_file_dicts=nl_file_dicts, 
-                                 args=args, 
-                                 arg_list=arg_list,
-                                 sections=sections)
-
+        
     return results, exitcode, file_dicts
