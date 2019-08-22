@@ -425,7 +425,7 @@ class coalaTest(unittest.TestCase):
             os.path.dirname(__file__),
             'processes/section_executor_test_files'))
 
-        testcode_p_path = os.path.join(config_path, 'test.py')
+        testcode_p_path = os.path.join(config_path, 'test.py.txt')
         uut_arg_list = [
                         '--no-config', '--handle-nested',
                         '--bears=PEP8TestBear,Jinja2TestBear',
