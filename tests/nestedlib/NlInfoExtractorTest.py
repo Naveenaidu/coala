@@ -16,13 +16,13 @@ class NlInfoExtractor(unittest.TestCase):
 
     def setUp(self):
         self.arg_parser = default_arg_parser()
-        self.test_dir_path = os.path.abspath(__file__ + "/../..")
-        self.test_bear_path = os.path.join(self.test_dir_path, "test_bears")
+        self.test_dir_path = os.path.abspath(__file__ + '/../..')
+        self.test_bear_path = os.path.join(self.test_dir_path, 'test_bears')
         # Both the upper case and lower case is supported in `languages`
         # argument
         self.args = self.arg_parser.parse_args([
-                                    '-f', 'test.py.jj2,test2.py.jj2',
-                                    '-b',
+                                '-f', 'test.py.jj2,test2.py.jj2',
+                                '-b',
                                 'PEP8TestBear,Jinja2TestBear,LineCountTestBear',
                                 '--handle-nested', '--languages',
                                 'PYTHON,Jinja2',
@@ -54,9 +54,9 @@ class NlInfoExtractor(unittest.TestCase):
                 check_lang_support(lang_list)
                 self.assertRegex(
                     cm.output[0],
-                    "The language combination are not supported. "
-                    "Please check if the languages are provided with"
-                    "the correct names")
+                    'The language combination are not supported. '
+                    'Please check if the languages are provided with'
+                    'the correct names')
 
         uut_lang_list = ['PYTHON', 'JiNjA2']
         check_lang_support(uut_lang_list)

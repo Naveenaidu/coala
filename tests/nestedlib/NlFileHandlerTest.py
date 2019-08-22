@@ -189,9 +189,9 @@ class NlFileHandler(unittest.TestCase):
             '\n',
             '# Start Nl Section: 3\n',
             '{% endblock %}\n',
-            "{% set min_python_version = " +
+            '{% set min_python_version = ' +
             "min_python_version|default('2.6') %}\n",
-            "{% set min_python_version = " +
+            '{% set min_python_version = ' +
             "min_python_version.split('.', 2) %}\n",
             '\n',
             '{% block header %}\n',
@@ -283,7 +283,7 @@ class NlFileHandler(unittest.TestCase):
             '\n',
             '# Start Nl Section: 29\n',
             "{% if not entry_points or 'console_scripts' " +
-            "not in entry_points %}\n",
+            'not in entry_points %}\n',
             '# End Nl Section: 29\n',
             '\n',
             '# Start Nl Section: 31\n',

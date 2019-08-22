@@ -198,7 +198,7 @@ def get_preprocessed_nl_sections(all_nl_sections, parser):
     # For eg: In a combination of Python and Jinja, we mark the mixed lang
     # nl_sections with jinja2 since Jinja2Bear can lint through them
     parser_name = parser.__class__.__name__
-    mixed_lang = ""
+    mixed_lang = ''
     for parser_mixed_lang_dict in PARSER_MIXED_LINE_COMB:
         for parser, lang in parser_mixed_lang_dict.items():
             if parser_name.lower() == parser.lower():
@@ -206,7 +206,7 @@ def get_preprocessed_nl_sections(all_nl_sections, parser):
                 break
 
     if not mixed_lang:
-        logging.error("No PARSER_MIXED_LINE_COMB exist")
+        logging.error('No PARSER_MIXED_LINE_COMB exist')
         raise SystemExit(2)
 
     preprocessed_nl_section_index = 1
@@ -217,8 +217,8 @@ def get_preprocessed_nl_sections(all_nl_sections, parser):
 
         nl_section = all_nl_sections[index]
         mixed_lang_section, num_mixed_nl_sections = is_mixed_lang_section(
-                                                  all_nl_sections[index:],
-                                                  nl_section_to_check=nl_section)
+                                            all_nl_sections[index:],
+                                            nl_section_to_check=nl_section)
         if mixed_lang_section:
             mixed_nl_section = deepcopy(nl_section)
             mixed_nl_section.start.column = None
@@ -291,8 +291,8 @@ def preprocess_nl_line_list(nl_sections, lines_list, lang):
     # For now this string works for the combination of Python and Jinja
     # When more language support is added, You can use `if` statements to
     # use the proper prefix
-    start_marker_prefix = "# Start Nl Section: "
-    end_marker_prefix = "# End Nl Section: "
+    start_marker_prefix = '# Start Nl Section: '
+    end_marker_prefix = '# End Nl Section: '
 
     # Store the count of number of lines have been added.
     added_lines = 0

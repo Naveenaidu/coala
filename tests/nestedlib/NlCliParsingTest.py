@@ -1,7 +1,7 @@
 import unittest
 
 from coalib.parsing.DefaultArgParser import default_arg_parser
-from coalib.nestedlib.NlCliParsing import(parse_nl_cli, check_conflicts)
+from coalib.nestedlib.NlCliParsing import (parse_nl_cli, check_conflicts)
 
 
 class NlCliParsingTest(unittest.TestCase):
